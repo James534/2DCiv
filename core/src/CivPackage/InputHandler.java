@@ -61,49 +61,7 @@ public class InputHandler implements InputProcessor{
 
             float pixelX = screenX + x ;
             float pixelY = y - screenY;
-            //screen.select (pixelX, pixelY);
-            float SectX = pixelX / 52;
-            float SectY  = pixelY/45;
-
-            float sectPxlX = pixelX % 52;
-            float sectPixY = pixelY % 45;
-
-            float m = 15/26f;
-
-            float selX = SectX ;
-            float selY = SectY ;
-
-            //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
-            if ((int)SectY  % 2 == 0){ //A TYPE
-                //left
-                if (sectPixY < (15 - sectPxlX*m)){
-                    selX = SectX  -1;
-                    selY = SectY  -1;
-                }
-                //right
-                if (sectPixY < (-15 + sectPxlX* m)){
-                    selY = SectY  -1;
-                }
-            }else{              //B TYPE
-                //right side
-                if (sectPxlX >= 26){
-                    if (sectPixY < (2*15 - sectPxlX*m)){
-                        selY = SectY  -1;
-                    }
-                }
-                //left side
-                if (sectPxlX < (26)){
-                    if (sectPixY < (sectPxlX*m)){
-                        selY = SectY  -1;
-                    }else{
-                        selX = SectX  -1;
-                    }
-                }
-            }
-
-            //System.out.println (sectPxlX + " " + (int)SectX  + " " + (int)selX);
-            //System.out.println (sectPixY + " " + SectY + " " + selY);
-            System.out.println ((int)selX + " " + (int)selY);
+            screen.selectHex (pixelX, pixelY);
         }
         return false;
     }

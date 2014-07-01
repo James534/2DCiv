@@ -42,7 +42,7 @@ public class GameScreen implements Screen{
         Gdx.input.setInputProcessor(inputHandler);
     }
 
-    public void select(float pixelX, float pixelY){
+    public void selectHex(float pixelX, float pixelY){
         gameMap.getPixelHex(pixelX, pixelY);
     }
 

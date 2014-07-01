@@ -23,17 +23,60 @@ public class GameMap {
         map[0][0].selected(true);
     }
 
-    public Hex getPixelHex(float x, float y){
-        int intX = (int)x/56;
-        int intY = (int)y/56;
+    public Hex getPixelHex(float pixelX, float pixelY){
+        float SectX = pixelX/52;
+        float SectY = pixelY/45;
 
-        getHex(intX, intY).selected(true);
+        float sectPxlX = pixelX % 52;
+        float sectPixY = pixelY % 45;
 
-        return null;
+        float m = 15/26f;
+
+        float selX = SectX;
+        float selY = SectY;
+
+        //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
+        if ((int)SectY % 2 == 0){  //A TYPE
+            //left
+            if (sectPixY < (15 - sectPxlX*m)){
+                selX = SectX  - 1;
+                selY = SectY  - 1;
+            }
+            //right
+            if (sectPixY < (-15 + sectPxlX*m)){
+                selY = SectY - 1;
+            }
+        }else{                      //B TYPE
+            //right side
+            if (sectPxlX >= 26){
+                if (sectPixY < (2*15 - sectPxlX*m)){
+                    selY = SectY - 1;
+                }
+            }
+            //left side
+            if (sectPxlX < (26)){
+                if (sectPixY < (sectPxlX*m)){
+                    selY = SectY - 1;
+                }else{
+                    selX = SectX - 1;
+                }
+            }
+        }
+        if (selX < 0 || selY < 0){  //if its out of bounds, return null
+            return null;
+        }
+        int intX = (int)selX;
+        int intY = (int)selY;
+
+        if (getHex(intX, intY) != null){
+            getHex(intX, intY).selected(true);
+        }
+
+        return (getHex(intX, intY));
     }
 
     public Hex getHex(int x, int y){
-        if (x < 0 || x > xSize || y < 0 || y > ySize){
+        if (x < 0 || x >= xSize || y < 0 || y >= ySize){
             return null;
         }else{
             return map[y][x];
