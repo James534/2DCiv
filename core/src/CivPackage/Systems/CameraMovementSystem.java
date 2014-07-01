@@ -117,9 +117,9 @@ public class CameraMovementSystem {
         }
 
         if (cam.position.y > y1 + 150){
-            //cam.position.y = y1 + 150;
+            cam.position.y = y1 + 150;
         }else if (cam.position.y < y0 - 150){
-            //cam.position.y = y0 - 150;
+            cam.position.y = y0 - 150;
         }
 
         cam.update();

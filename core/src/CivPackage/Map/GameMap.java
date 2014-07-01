@@ -24,13 +24,13 @@ public class GameMap {
     }
 
     public Hex getPixelHex(float pixelX, float pixelY){
-        float SectX = pixelX/52;
-        float SectY = pixelY/45;
+        float SectX = pixelX/Hex.HexD;
+        float SectY = pixelY/Hex.HexHS;
 
-        float sectPxlX = pixelX % 52;
-        float sectPixY = pixelY % 45;
+        float sectPxlX = pixelX % Hex.HexD;
+        float sectPixY = pixelY % Hex.HexHS;
 
-        float m = 15/26f;
+        float m = (float)Hex.HexH/(float)Hex.HexR;
 
         float selX = SectX;
         float selY = SectY;
@@ -38,23 +38,23 @@ public class GameMap {
         //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
         if ((int)SectY % 2 == 0){  //A TYPE
             //left
-            if (sectPixY < (15 - sectPxlX*m)){
+            if (sectPixY < (Hex.HexH - sectPxlX*m)){
                 selX = SectX  - 1;
                 selY = SectY  - 1;
             }
             //right
-            if (sectPixY < (-15 + sectPxlX*m)){
+            if (sectPixY < (-Hex.HexH + sectPxlX*m)){
                 selY = SectY - 1;
             }
         }else{                      //B TYPE
             //right side
-            if (sectPxlX >= 26){
-                if (sectPixY < (2*15 - sectPxlX*m)){
+            if (sectPxlX >= Hex.HexR){
+                if (sectPixY < (2*Hex.HexH - sectPxlX*m)){
                     selY = SectY - 1;
                 }
             }
             //left side
-            if (sectPxlX < (26)){
+            if (sectPxlX < (Hex.HexR)){
                 if (sectPixY < (sectPxlX*m)){
                     selY = SectY - 1;
                 }else{

@@ -1,6 +1,7 @@
 package CivPackage.Renderers;
 
 import CivPackage.Map.GameMap;
+import CivPackage.Models.Hex;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -28,19 +29,15 @@ public class MapRenderer {
 
         for (int x = 0; x < gameMap.xSize; x++){
             for (int y = 0; y < gameMap.ySize-1; y+=2){
-                int x0 = x * 52;
-                int y0 = y * 45;
+                int x0 = x * Hex.HexD;
+                int y0 = y * Hex.HexHS;
                 batch.draw(gameMap.getHex(x,y).getTexture(), x0, y0);
-                x0 += 26;
-                y0 += 45;
+                x0 += Hex.HexR;
+                y0 += Hex.HexHS;
                 batch.draw(gameMap.getHex(x,y+1).getTexture(), x0, y0);
             }
         }
 
-        Pixmap pic = new Pixmap(53,53,Pixmap.Format.valueOf("RGB565"));
-        pic.setColor(Color.RED);
-        pic.fill();
-        batch.draw(new Texture(pic), 52,0);
-                batch.end();
+        batch.end();
     }
 }

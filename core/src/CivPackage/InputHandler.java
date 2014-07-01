@@ -38,18 +38,6 @@ public class InputHandler implements InputProcessor{
                 cms.moveCam(10,0);
                 cms.setPressX(true);
                 break;
-            case Input.Keys.I:
-                cms.cam.position.x = 200;
-                break;
-            case Input.Keys.K:
-                cms.cam.position.x += 10;
-                break;
-            case Input.Keys.J:
-                cms.cam.position.x -= 10;
-                break;
-            case Input.Keys.P:
-                cms.cam.position.x +=1;
-                break;
         }
         return false;
     }
