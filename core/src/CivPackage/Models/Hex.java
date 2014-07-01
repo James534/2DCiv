@@ -3,12 +3,13 @@ package CivPackage.Models;
 import CivPackage.MathCalc;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 
 
 /**
  * Created by james on 6/29/2014.
  */
-public class Hex {
+public class Hex extends Actor{
     //the tiles in pixel coordinates,
     private Vector2 pos;
 
@@ -18,8 +19,8 @@ public class Hex {
 
     private int id;
     private Texture texture;
-    private static Texture texture1 = new Texture("core/assets/Tile.png");
-    private static Texture texture2 = new Texture("core/assets/Tile2.png");
+    private static Texture texture1 = new Texture("core/assets/Hex6.png");
+    private static Texture texture2 = new Texture("core/assets/Hex5.png");
     private float h;    //height
     private boolean selected;
 
@@ -45,6 +46,7 @@ public class Hex {
         pos.y = (y+2/3) * h +1;
 
     }
+
 
     public void selected(boolean t){
         selected = t;

@@ -3,6 +3,7 @@ package CivPackage.Systems;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * Created by james on 6/30/2014.
@@ -65,6 +66,10 @@ public class CameraMovementSystem {
     }
     public void setPressX(boolean press){
         pressX = press;
+    }
+
+    public Vector3 getPos(){
+        return cam.position;
     }
 
     private void updateCamera(){

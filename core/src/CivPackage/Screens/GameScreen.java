@@ -9,6 +9,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 
 
 /**
@@ -18,6 +19,7 @@ public class GameScreen implements Screen{
 
     private SpriteBatch batch;
     private OrthographicCamera camera;
+    private Stage stage;
 
     private GameMap gameMap;
     private MapRenderer mapRenderer;
@@ -30,13 +32,18 @@ public class GameScreen implements Screen{
         gameMap = new GameMap(32,32);
         camera = new OrthographicCamera();
         batch = new SpriteBatch();
+        stage = new Stage();
 
         cameraMovementSystem = new CameraMovementSystem(camera,
                 gameMap.getHex(0,0).getPos().x,gameMap.getHex(0,0).getPos().y,
                 gameMap.getHex(gameMap.xSize-1,0).getPos().x, gameMap.getHex(0,gameMap.ySize-1).getPos().y);
         mapRenderer = new MapRenderer(camera, gameMap, batch);
-        inputHandler = new InputHandler(cameraMovementSystem);
+        inputHandler = new InputHandler(cameraMovementSystem, this);
         Gdx.input.setInputProcessor(inputHandler);
+    }
+
+    public void select(float pixelX, float pixelY){
+        gameMap.getPixelHex(pixelX, pixelY);
     }
 
     @Override

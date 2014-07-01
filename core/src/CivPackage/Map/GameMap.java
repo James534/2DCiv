@@ -23,6 +23,15 @@ public class GameMap {
         map[0][0].selected(true);
     }
 
+    public Hex getPixelHex(float x, float y){
+        int intX = (int)x/56;
+        int intY = (int)y/56;
+
+        getHex(intX, intY).selected(true);
+
+        return null;
+    }
+
     public Hex getHex(int x, int y){
         if (x < 0 || x > xSize || y < 0 || y > ySize){
             return null;
