@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class CameraMovementSystem {
 
-    private OrthographicCamera cam;
+    public OrthographicCamera cam;
     private Vector2 camVel;
     private Vector2 camSpeed;
     private float camZoom;
@@ -51,6 +51,8 @@ public class CameraMovementSystem {
 
     public void zoomCam(int amount){
         camZoom += amount * 0.2f;
+        camZoom *= 5;
+        camZoom = Math.round(camZoom)/5f;
         if (camZoom < 0.4)
             camZoom = 0.4f;
         else if (camZoom > 2){
@@ -71,6 +73,7 @@ public class CameraMovementSystem {
     public Vector3 getPos(){
         return cam.position;
     }
+    public float getCamZoom(){return camZoom;}
 
     private void updateCamera(){
         cam.position.add(camVel.x, camVel.y, 0);
@@ -114,9 +117,9 @@ public class CameraMovementSystem {
         }
 
         if (cam.position.y > y1 + 150){
-            cam.position.y = y1 + 150;
+            //cam.position.y = y1 + 150;
         }else if (cam.position.y < y0 - 150){
-            cam.position.y = y0 - 150;
+            //cam.position.y = y0 - 150;
         }
 
         cam.update();

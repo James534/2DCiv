@@ -38,6 +38,18 @@ public class InputHandler implements InputProcessor{
                 cms.moveCam(10,0);
                 cms.setPressX(true);
                 break;
+            case Input.Keys.I:
+                cms.cam.position.x = 200;
+                break;
+            case Input.Keys.K:
+                cms.cam.position.x += 10;
+                break;
+            case Input.Keys.J:
+                cms.cam.position.x -= 10;
+                break;
+            case Input.Keys.P:
+                cms.cam.position.x +=1;
+                break;
         }
         return false;
     }
@@ -56,12 +68,13 @@ public class InputHandler implements InputProcessor{
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if (button == Input.Buttons.LEFT){
-            float x = cms.getPos().x - GameProject.WIDTH/2;
-            float y = cms.getPos().y + GameProject.HEIGHT/2;
+            float x = cms.getPos().x - GameProject.WIDTH/2 * cms.getCamZoom();         //gets camera position and
+            float y = cms.getPos().y + GameProject.HEIGHT/2* cms.getCamZoom();         //uses it to get top left corner of the screen
 
-            float pixelX = screenX + x ;
-            float pixelY = y - screenY;
-            screen.selectHex (pixelX, pixelY);
+            float pixelX = screenX * cms.getCamZoom() + x;
+            float pixelY = y - screenY * cms.getCamZoom();
+
+            screen.selectHex(pixelX, pixelY);
         }
         return false;
     }

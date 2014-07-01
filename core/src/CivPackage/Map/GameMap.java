@@ -68,6 +68,7 @@ public class GameMap {
         int intX = (int)selX;
         int intY = (int)selY;
 
+        //System.out.println ("Hex:" + intX + " " + intY);
         if (getHex(intX, intY) != null){
             getHex(intX, intY).selected(true);
         }
