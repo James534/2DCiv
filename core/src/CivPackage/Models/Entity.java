@@ -1,5 +1,6 @@
 package CivPackage.Models;
 
+import CivPackage.MathCalc;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -11,15 +12,38 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 public class Entity extends Actor{
 
     protected Texture texture;
-    protected Vector2 pos;
-    protected Vector2 pixelPos;
+    protected Vector2 pos;          //position in tile coordinate
+    protected Vector2 pixelPos;     //position in pixel coordinate
 
-    public Entity (Vector2 pos){
+    protected int id;               //unit id, unique to each unit
+    protected int type;             //what type of unit this is; 1 is land, 2 is sea, 3 is air
+    protected int hp;
+    protected int maxMovement;      //how much this unit can move
+    protected int movement;
+    protected int exp;
+    protected int level;
+    protected int range;            //1 for melee, 2+ for ranged
+
+    public Entity (Vector2 pos, int id, int hp, int movement){
         this.pos = pos;
+        this.id = id;
+        this.hp = hp;
+        this.maxMovement = movement;
+        movement = maxMovement;
+        exp = 0;
+        level = 0;
+        pixelPos = MathCalc.getPixelPos(pos);
+        pixelPos.x += 30;
+        pixelPos.y += 20;
     }
 
     public void draw (SpriteBatch batch, float Alpha){
 
     }
+
+
+    public Texture getTexture(){return texture;}
+    public Vector2 getPos(){return pos;}
+    public Vector2 getPixelPos(){return pixelPos;}
 
 }

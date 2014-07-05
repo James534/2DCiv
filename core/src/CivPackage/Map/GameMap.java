@@ -1,5 +1,6 @@
 package CivPackage.Map;
 
+import CivPackage.Models.Entity;
 import CivPackage.Models.Hex;
 
 /**
@@ -20,7 +21,10 @@ public class GameMap {
                 map[y][x] = new Hex(1, x, y);
             }
         }
-        map[0][0].selected(true);
+    }
+
+    public void addUnit(Entity unit){
+        getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }
 
     public Hex getPixelHex(float pixelX, float pixelY){
@@ -69,10 +73,6 @@ public class GameMap {
         int intY = (int)selY;
 
         //System.out.println ("Hex:" + intX + " " + intY);
-        if (getHex(intX, intY) != null){
-            getHex(intX, intY).selected(true);
-        }
-
         return (getHex(intX, intY));
     }
 
@@ -83,5 +83,4 @@ public class GameMap {
             return map[y][x];
         }
     }
-
 }

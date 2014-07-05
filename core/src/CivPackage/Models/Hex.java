@@ -11,14 +11,16 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
  */
 public class Hex extends Actor{
     //the tiles in pixel coordinates,
-    private Vector2 pos;
+    private Vector2 pixelPos;
 
     //the tiles in map x and y coordinates, stored in the array
-    private Vector2 mapCoordinates;
+    private Vector2 pos;
     private boolean even;   //if this tile is even or odd
     private boolean selected;
 
     private int id;
+    private Entity unit;    //the unit that is currently on this hex
+
     private Texture texture;
     private static Texture texture1 = new Texture("core/assets/Hex6.png");
     private static Texture texture2 = new Texture("core/assets/Hex5.png");
@@ -31,9 +33,9 @@ public class Hex extends Actor{
     public static final int HexHS= 45;  //HexH + HexS
 
     public Hex(int id, int x, int y){
-        pos = new Vector2();
-        mapCoordinates = new Vector2(x,y);
-        if (mapCoordinates.y%2 == 0){
+        pixelPos = new Vector2();
+        pos = new Vector2(x,y);
+        if (pos.y%2 == 0){
             even = true;
         }else{
             even = false;
@@ -42,8 +44,8 @@ public class Hex extends Actor{
 
         texture = texture1;
 
-        pos.x = mapCoordinates.x * HexD + (mapCoordinates.y %2)*HexR;
-        pos.y = mapCoordinates.y * HexHS;
+        pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
+        pixelPos.y = pos.y * HexHS;
     }
 
 
@@ -59,6 +61,7 @@ public class Hex extends Actor{
     public Texture getTexture(){
         return texture;
     }
-
-    public Vector2 getPos(){return pos;}
+    public Vector2 getPixelPos(){return pixelPos;}
+    public Entity getUnit() {return unit;}
+    public void addUnit(Entity unit){this.unit = unit;}
 }
