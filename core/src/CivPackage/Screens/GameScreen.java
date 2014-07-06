@@ -42,7 +42,7 @@ public class GameScreen implements Screen{
 
         //systems
         unitManagementSystem = new UnitManagementSystem(0, gameMap);     //creates a new unit management system for the human player
-        uiSystem = new UISystem(gameMap, stage);
+        uiSystem = new UISystem(gameMap, unitManagementSystem, stage);
         cameraMovementSystem = new CameraMovementSystem(camera,
                 gameMap.getHex(0,0).getPixelPos().x,gameMap.getHex(0,0).getPixelPos().y,
                 gameMap.getHex(gameMap.xSize-1,0).getPixelPos().x, gameMap.getHex(0,gameMap.ySize-1).getPixelPos().y);
@@ -52,7 +52,7 @@ public class GameScreen implements Screen{
         unitRenderer = new UnitRenderer(camera, unitManagementSystem, batch);
 
         //other stuff
-        inputHandler = new InputHandler(cameraMovementSystem, this);
+        inputHandler = new InputHandler(cameraMovementSystem, uiSystem, this);
         Gdx.input.setInputProcessor(inputHandler);
 
 
@@ -63,7 +63,7 @@ public class GameScreen implements Screen{
     public void selectHex(float pixelX, float pixelY){
         uiSystem.selectHex(gameMap.getPixelHex(pixelX, pixelY));
         if (uiSystem.getSelectedHex() != null) {
-            cameraMovementSystem.moveCamTo(uiSystem.getSelectedHex().getPixelPos().x + Hex.HexR, uiSystem.getSelectedHex().getPixelPos().y + Hex.HexR);
+            //cameraMovementSystem.moveCamTo(uiSystem.getSelectedHex().getPixelPos().x + Hex.HexR, uiSystem.getSelectedHex().getPixelPos().y + Hex.HexR);
         }
     }
 

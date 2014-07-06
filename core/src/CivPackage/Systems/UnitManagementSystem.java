@@ -26,6 +26,14 @@ public class UnitManagementSystem {
         unitId = 0;
     }
 
+    public void moveUnit (Entity u, int x, int y){
+        if (units.contains(u, false)){
+            gameMap.getHex(x, y).addUnit(u);
+            gameMap.getHex(u.getMapX(),u.getMapY()).addUnit(null);
+            u.setMapPos(new Vector2(x,y));
+        }
+    }
+
     public void createUnit(int classId, int x, int y){
         unitId ++;
         if (classId == 1) {

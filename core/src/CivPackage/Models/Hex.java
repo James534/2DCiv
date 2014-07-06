@@ -62,6 +62,10 @@ public class Hex extends Actor{
         return texture;
     }
     public Vector2 getPixelPos(){return pixelPos;}
+    public Vector2 getPos(){return pos;}
+    public int getMapX(){return (int)pos.x;}
+    public int getMapY(){return (int)pos.y;}
+    public boolean getEven(){return even;}
     public Entity getUnit() {return unit;}
     public void addUnit(Entity unit){this.unit = unit;}
 }

@@ -24,6 +24,7 @@ public class GameMap {
     }
 
     public void addUnit(Entity unit){
+        
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }
 

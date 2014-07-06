@@ -2,6 +2,7 @@ package CivPackage;
 
 import CivPackage.Screens.GameScreen;
 import CivPackage.Systems.CameraMovementSystem;
+import CivPackage.Systems.UISystem;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -12,10 +13,12 @@ import com.badlogic.gdx.InputProcessor;
 public class InputHandler implements InputProcessor{
 
     private CameraMovementSystem cms;
+    private UISystem uiSystem;
     private GameScreen screen;
 
-    public InputHandler(CameraMovementSystem cameraMovementSystem, GameScreen screen){
+    public InputHandler(CameraMovementSystem cameraMovementSystem, UISystem uiSystem, GameScreen screen){
         cms = cameraMovementSystem;
+        this.uiSystem = uiSystem;
         this.screen = screen;
     }
 
@@ -37,6 +40,9 @@ public class InputHandler implements InputProcessor{
             case Input.Keys.D:
                 cms.moveCam(10,0);
                 cms.setPressX(true);
+                break;
+            case Input.Keys.ESCAPE:
+                uiSystem.cancelSelection();
                 break;
         }
         return false;

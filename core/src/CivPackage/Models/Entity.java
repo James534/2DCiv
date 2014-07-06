@@ -25,13 +25,17 @@ public class Entity extends Actor{
     protected int range;            //1 for melee, 2+ for ranged
 
     public Entity (Vector2 pos, int id, int hp, int movement){
-        this.pos = pos;
+        setMapPos(pos);
         this.id = id;
         this.hp = hp;
         this.maxMovement = movement;
         movement = maxMovement;
         exp = 0;
         level = 0;
+    }
+
+    public void setMapPos(Vector2 pos){
+        this.pos = pos;
         pixelPos = MathCalc.getPixelPos(pos);
         pixelPos.x += 30;
         pixelPos.y += 20;
@@ -44,6 +48,8 @@ public class Entity extends Actor{
 
     public Texture getTexture(){return texture;}
     public Vector2 getPos(){return pos;}
+    public int getMapX(){return (int)pos.x;}
+    public int getMapY(){return (int)pos.y;}
     public Vector2 getPixelPos(){return pixelPos;}
 
 }
