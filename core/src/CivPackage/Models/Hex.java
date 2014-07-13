@@ -18,12 +18,17 @@ public class Hex extends Actor{
     private boolean even;   //if this tile is even or odd
     private boolean selected;
 
-    private int id;
+    private int id;         //what this tile is
+    private int resource;   //id of the resource
+    private int SRCount;    //amount of strategic resource, iron, hourses, etc
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static Texture texture1 = new Texture("core/assets/Hex6.png");
-    private static Texture texture2 = new Texture("core/assets/Hex5.png");
+    private static Texture[] textures = {new Texture("core/assets/Hex0.png"), new Texture("core/assets/Hex1.png"),
+            new Texture("core/assets/Hex2.png")
+            , new Texture("core/assets/Hex3.png"), new Texture("core/assets/Hex4.png")
+            , new Texture("core/assets/Hex5.png"), new Texture("core/assets/Hex6.png")
+            , new Texture("core/assets/Hex7.png"), new Texture("core/assets/Hex8.png")};
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;
@@ -42,19 +47,18 @@ public class Hex extends Actor{
         }
         this.id = id;
 
-        texture = texture1;
+        texture = textures[id%8];
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
     }
 
-
     public void selected(boolean t){
         selected = t;
         if (selected){
-            texture = texture2;
+            texture = textures[7];
         }else {
-            texture = texture1;
+            texture = textures[id%8];
         }
     }
 

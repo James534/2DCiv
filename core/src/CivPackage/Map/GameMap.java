@@ -2,6 +2,7 @@ package CivPackage.Map;
 
 import CivPackage.Models.Entity;
 import CivPackage.Models.Hex;
+import CivPackage.Random;
 
 /**
  * Created by james on 6/30/2014.
@@ -15,16 +16,18 @@ public class GameMap {
         this.xSize = xSize;
         this.ySize = ySize;
 
-        map = new Hex[xSize][ySize];
+        Random r = new Random(1047155);
+        int[][] heightMap = r.generateTerrain(xSize,ySize);
+
+        map = new Hex[ySize][xSize];
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length;x++){
-                map[y][x] = new Hex(1, x, y);
+                map[y][x] = new Hex(heightMap[y][x], x, y);
             }
         }
     }
 
     public void addUnit(Entity unit){
-        
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }
 
