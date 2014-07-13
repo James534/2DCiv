@@ -20,7 +20,7 @@ public class Random {
         map[ySize-1][xSize-1]   = nextPosInt(20,8);
 
         int step = 5;
-        float variation = 2;
+        float variation = 2.4f;
         int size = xSize;
         int hSize = size/2;
 
@@ -129,7 +129,7 @@ public class Random {
 
                 x0 += size;
                 if (x0 >= xSize-1){
-                    x0 = size;
+                    x0 = hSize;
                     y0 += size;
                     if (y0 >= ySize-1){
                         break;
@@ -145,6 +145,18 @@ public class Random {
             y0 = 0;
             x1 = size;
             y1 = size;
+
+            for (int Y = 0; Y < map.length; Y++){
+                for (int X = 0; X < map[0].length; X++){
+                    if (map[Y][X] == 0){
+                        System.out.print("_ ");
+                    }else{
+                        System.out.print((int)map[Y][X] + " ");
+                    }
+                }
+                System.out.println();
+            }
+            System.out.println("________________");
         }
 
         int[][] finalMap = new int[ySize][xSize];
