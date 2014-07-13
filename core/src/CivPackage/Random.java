@@ -8,8 +8,10 @@ import com.badlogic.gdx.utils.Array;
 public class Random {
 
     private int seed;
+    private java.util.Random random;
     public Random(int seed){
         this.seed = seed;
+        random = new java.util.Random(seed);
     }
 
     public int[][] generateTerrain(int xSize, int ySize){
@@ -20,7 +22,7 @@ public class Random {
         map[ySize-1][xSize-1]   = nextPosInt(20,8);
 
         int step = 5;
-        float variation = 2.4f;
+        float variation = 4f;
         int size = xSize;
         int hSize = size/2;
 
@@ -38,7 +40,7 @@ public class Random {
                 b = map[y0][x1];
                 c = map[y1][x0];
                 d = map[y1][x1];
-                map[y0 + hSize][x0 + hSize] = Math.round(a + b + c + d / 4f) * (float) next((x0 + y1)) * variation;
+                map[y0 + hSize][x0 + hSize] = Math.round(a + b + c + d / 4f) + (float) next((x0 + y1)) * variation;
                 x0 += size;
                 x1 += size;
                 if (x1 >= xSize){
@@ -73,7 +75,7 @@ public class Random {
                             b--;
                         }
                     }
-                    map[y0][x0 - hSize] = c / b * (float) next((int) c) * variation;
+                    map[y0][x0 - hSize] = c / b + (float) inRange((int)c, -0.3, 1) * variation;
                 }
                 // ==================== right point =====================
                 if (map[y0][x0+hSize] == 0) {
@@ -90,7 +92,7 @@ public class Random {
                             b--;
                         }
                     }
-                    map[y0][x0 + hSize] = c / b * (float) next((int) c) * variation;
+                    map[y0][x0 + hSize] = c / b + (float) inRange((int) c, -0.3, 1) * variation;
                 }
                 // ==================== top point =======================
                 if (map[y0+hSize][x0] == 0) {
@@ -107,7 +109,7 @@ public class Random {
                             b--;
                         }
                     }
-                    map[y0 + hSize][x0] = c / b * (float) next((int) c) * variation;
+                    map[y0 + hSize][x0] = c / b + (float) inRange((int) c, -0.3, 1) * variation;
                 }
                 // =================== bottom point =====================
                 if (map[y0-hSize][x0] == 0) {
@@ -124,7 +126,7 @@ public class Random {
                             b--;
                         }
                     }
-                    map[y0 - hSize][x0] = c / b * (float) next((int) c) * variation;
+                    map[y0 - hSize][x0] = c / b + (float) inRange((int) c, -0.3, 1) * variation;
                 }
 
                 x0 += size;
@@ -162,7 +164,12 @@ public class Random {
         int[][] finalMap = new int[ySize][xSize];
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
-                finalMap[Y][X] = Math.round(map[Y][X]);
+                if (map[Y][X] < 0) {
+                    finalMap[Y][X] = 0;
+                }else{
+                    finalMap[Y][X] = Math.round(map[Y][X]);
+                }
+                //finalMap[Y][X] = Math.round(Math.abs(map[Y][X]));
                 //System.out.print(finalMap[Y][X] + " ");
             }
             //System.out.println();
@@ -183,10 +190,21 @@ public class Random {
         return (int)Math.abs(Math.round(next(x)*range));
     }
 
+    public double inRange(int x, double min, double max){
+        return min + random.nextDouble() * (max-min);
+    }
+
     public double next(int x){
+        double y = random.nextDouble();
+        if (random.nextDouble() > 0.3d){
+            return y;
+        }else{
+            return y *-1;
+        }
+        /*
         int n = x * 331 + seed*x*338;
         n = (int)Math.round(Math.pow(n<<13, n));
         int nn=(n*(n*n*41333 +53307781)+1376312589)&0x7fffffff;
-        return ((1.0-((double)nn/1073741824.0))+1)/2.0;
+        return ((1.0-((double)nn/1073741824.0))+1)/2.0;*/
     }
 }

@@ -15,6 +15,7 @@ public class UISystem {
     private GameMap map;
     private UnitManagementSystem ums;
     private Stage stage;
+    private PathfindingSystem pfs;
     private Hex selected;       //currently selected hex
     private Array<Hex> surrounding;
 
@@ -24,6 +25,7 @@ public class UISystem {
         this.map = map;
         this.ums = ums;
         this.stage = stage;
+        pfs = new PathfindingSystem(map);
         table = new Table();    //add skin
         surrounding = new Array<Hex>();
     }
@@ -31,21 +33,7 @@ public class UISystem {
     private void showMovement(){
         int x = selected.getMapX();
         int y = selected.getMapY();
-        if (selected.getEven()) {
-            surrounding.add(map.getHex(x, y - 1));
-            surrounding.add(map.getHex(x, y + 1));
-            surrounding.add(map.getHex(x - 1, y));
-            surrounding.add(map.getHex(x + 1, y));
-            surrounding.add(map.getHex(x - 1, y - 1));
-            surrounding.add(map.getHex(x - 1, y + 1));
-        }else{
-            surrounding.add(map.getHex(x, y - 1));
-            surrounding.add(map.getHex(x, y + 1));
-            surrounding.add(map.getHex(x - 1, y));
-            surrounding.add(map.getHex(x + 1, y));
-            surrounding.add(map.getHex(x + 1, y - 1));
-            surrounding.add(map.getHex(x + 1, y + 1));
-        }
+        surrounding = pfs.getHexInRange(x, y, map.getHex(x,y).getUnit().getMovement());
         for (Hex h: surrounding){
             h.selected(true);
         }

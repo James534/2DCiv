@@ -20,7 +20,9 @@ public class Hex extends Actor{
 
     private int id;         //what this tile is
     private int resource;   //id of the resource
-    private int SRCount;    //amount of strategic resource, iron, hourses, etc
+    private int SRCount;    //amount of strategic resource, iron, horses, etc
+    private int cost;       //how much it costs to move across this tile
+    private boolean walkable = true;//
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
@@ -46,8 +48,12 @@ public class Hex extends Actor{
             even = false;
         }
         this.id = id;
-
         texture = textures[id%8];
+
+        if (id == 8){
+            walkable = false;
+        }
+        cost = id;
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
@@ -72,4 +78,6 @@ public class Hex extends Actor{
     public boolean getEven(){return even;}
     public Entity getUnit() {return unit;}
     public void addUnit(Entity unit){this.unit = unit;}
+    public int getCost(){return cost;}
+    public boolean getWalkable(){return walkable;}
 }

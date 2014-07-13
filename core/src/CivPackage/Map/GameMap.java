@@ -22,7 +22,7 @@ public class GameMap {
         map = new Hex[ySize][xSize];
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length;x++){
-                map[y][x] = new Hex(heightMap[y][x], x, y);
+                map[y][x] = new Hex(1, x, y);
             }
         }
     }
@@ -31,6 +31,12 @@ public class GameMap {
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }
 
+    /**
+     * Gets the hex that is at the pixel coordinate parameters
+     * @param pixelX
+     * @param pixelY
+     * @return
+     */
     public Hex getPixelHex(float pixelX, float pixelY){
         float SectX = pixelX/Hex.HexD;
         float SectY = pixelY/Hex.HexHS;
@@ -80,6 +86,12 @@ public class GameMap {
         return (getHex(intX, intY));
     }
 
+    /**
+     * Gets the hex at the map grid coordinates
+     * @param x
+     * @param y
+     * @return
+     */
     public Hex getHex(int x, int y){
         if (x < 0 || x >= xSize || y < 0 || y >= ySize){
             return null;

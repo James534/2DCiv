@@ -29,7 +29,7 @@ public class Entity extends Actor{
         this.id = id;
         this.hp = hp;
         this.maxMovement = movement;
-        movement = maxMovement;
+        this.movement = maxMovement;
         exp = 0;
         level = 0;
     }
@@ -51,5 +51,7 @@ public class Entity extends Actor{
     public int getMapX(){return (int)pos.x;}
     public int getMapY(){return (int)pos.y;}
     public Vector2 getPixelPos(){return pixelPos;}
+    public int getMaxMovement(){return maxMovement;}
+    public int getMovement(){return movement;}
 
 }
