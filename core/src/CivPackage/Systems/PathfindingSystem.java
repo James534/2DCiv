@@ -10,10 +10,96 @@ import com.badlogic.gdx.utils.Array;
 public class PathfindingSystem {
 
     private GameMap map;
-    private Node[][] nodeMap;
+    private Node[][] nodes;
+    private boolean[][] nodeMap;
+
+    private Array<Node> open, closed;
+    private int ex, ey;
+
     public PathfindingSystem(GameMap map){
         this.map = map;
+        open = new Array<Node>();
+        closed = new Array<Node>();
+        reset();
+    }
 
+    /**
+     * Finds the best path using A*
+     * @param sx
+     * @param sy
+     * @param ex
+     * @param ey
+     * @return
+     */
+    public Array<Hex> getPath(int sx, int sy, int ex, int ey){
+        reset();
+        this.ex = ex;
+        this.ey = ey;
+        Array<Hex> path = new Array<Hex>();
+        Array<Node> adj = new Array<Node>();
+
+        nodes[sy][sx] = new Node(sx, sy);
+        open.add(nodes[sy][sx]);
+
+        while (open.size > 0){
+            Node best = findBestNode();
+            open.removeValue(best, true);
+            closed.add(best);
+
+            if (best.x == ex && best.y == ey){
+                //FOUND THE END
+                Node t = best;
+                while (t != null){
+                    path.add (map.getHex(t.x, t.y));
+                    t = t.parent;
+                }
+                return path;
+            }else{
+                adj = getNeighbourNode(best.x,best.y);
+
+                for (Node n: adj){
+                    if (n.walkable) {
+                        if (open.contains(n, false)) {
+                            Node temp = new Node(n.x, n.y, n);
+                            if (temp.getFinalCost() >= n.getFinalCost()) {
+                                continue;
+                            }
+                        } else if (closed.contains(n, false)) {
+                            Node temp = new Node(n.x, n.y, n);
+                            if (temp.getFinalCost() >= n.getFinalCost()) {
+                                continue;
+                            }
+                        }
+
+                        n.parent = best;
+                        open.removeValue(n, false);
+                        closed.removeValue(n, false);
+                        open.add(n);
+                    }
+                }
+            }
+        }
+
+        return path;
+    }
+
+    private Node findBestNode(){
+        Node best = open.get(0);
+        for (Node n: open){
+            if (n.getFinalCost() < best.getFinalCost()){
+                best = n;
+            }
+        }
+        return best;
+    }
+
+    private void reset(){
+        open.clear();
+        closed.clear();
+        nodeMap = new boolean[map.ySize][map.xSize];
+        nodes = new Node[map.ySize][map.xSize];
+        ex = 0;
+        ey = 0;
     }
 
     /**
@@ -28,7 +114,7 @@ public class PathfindingSystem {
         getHexInRange(x,y,range,path);
         return path;
     }
-    public void getHexInRange(int x, int y, int range, Array<Hex> path){
+    public void getHexInRange(int x, int y, float range, Array<Hex> path){
         Array<Hex> open = new Array<Hex>();
         for (Hex h: getNeighbours(x,y)) {
             if (!path.contains(h, true) && h.getWalkable()) {
@@ -62,8 +148,43 @@ public class PathfindingSystem {
         }
         return neighbours;
     }
-    private Array<Node> getNeighboutNode(int x, int y){
+
+    private void checkNode(int x, int y, Node p){
+        //System.out.println(x + " " + y);
+        if (nodes[y][x] == null){
+            nodes[y][x] = new Node(x,y,p);
+            nodes[y][x].walkable = map.getHex(x,y).getWalkable();
+        }
+    }
+
+    /**
+     * Returns a list of Nodes adjacent to the specified Node <br>
+     *     Creates the nodes if they don't exist already
+     * @param x of the specified Node
+     * @param y of the specified Node
+     * @return Neighbouring Nodes
+     */
+    private Array<Node> getNeighbourNode(int x, int y){
         Array<Node> neighbour = new Array<Node>(6);
+        checkNode(x,y-1,nodes[y][x]);
+        checkNode(x,y+1,nodes[y][x]);
+        checkNode(x-1,y,nodes[y][x]);
+        checkNode(x+1,y,nodes[y][x]);
+        neighbour.add(nodes[y-1][x]);
+        neighbour.add(nodes[y+1][x]);
+        neighbour.add(nodes[y][x-1]);
+        neighbour.add(nodes[y][x+1]);
+        if (map.getHex(x,y).getEven()){
+            checkNode(x-1,y-1,nodes[y][x]);
+            checkNode(x-1,y+1,nodes[y][x]);
+            neighbour.add(nodes[y-1][x-1]);
+            neighbour.add(nodes[y+1][x-1]);
+        }else{
+            checkNode(x+1,y-1,nodes[y][x]);
+            checkNode(x+1,y+1,nodes[y][x]);
+            neighbour.add(nodes[y-1][x+1]);
+            neighbour.add(nodes[y+1][x+1]);
+        }
         return neighbour;
     }
 
@@ -78,8 +199,38 @@ public class PathfindingSystem {
     private class Node{
         private int x, y;
         private boolean walkable;
-        private float cost;
+        private float startCost, endCost, finalCost;
         private Node parent;
 
+        public Node(int sx, int sy){
+            x = sx;
+            y = sy;
+            startCost = 0;
+            endCost = getEndCost();
+            finalCost = endCost;
+        }
+
+        public Node(int sx, int sy, Node p){
+            this (sx,sy);
+            parent = p;
+            startCost = parent.startCost+1;
+            finalCost = startCost + endCost;
+        }
+
+        private float getFinalCost(){
+            return startCost + getEndCost();
+        }
+
+        /**
+         * Calculates the heuristics using hex distance
+         * @return
+         */
+        private float getEndCost(){
+            int dx = x - ex;
+            int dy = y - ey;
+            int dz = dx - dy;
+            //return Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz)));
+            return Math.max(Math.abs(dx), Math.abs(dy));
+        }
     }
 }

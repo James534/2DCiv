@@ -4,6 +4,7 @@ import CivPackage.InputHandler;
 import CivPackage.Map.GameMap;
 import CivPackage.Models.Hex;
 import CivPackage.Renderers.MapRenderer;
+import CivPackage.Renderers.UiRenderer;
 import CivPackage.Renderers.UnitRenderer;
 import CivPackage.Systems.CameraMovementSystem;
 import CivPackage.Systems.UISystem;
@@ -28,6 +29,7 @@ public class GameScreen implements Screen{
     private GameMap gameMap;
     private MapRenderer mapRenderer;
     private UnitRenderer unitRenderer;
+    private UiRenderer uiRenderer;
     private InputHandler inputHandler;
     private CameraMovementSystem cameraMovementSystem;
     private UnitManagementSystem unitManagementSystem;
@@ -50,21 +52,15 @@ public class GameScreen implements Screen{
         //renderers
         mapRenderer = new MapRenderer(camera, gameMap, batch);
         unitRenderer = new UnitRenderer(camera, unitManagementSystem, batch);
+        uiRenderer = new UiRenderer(camera,uiSystem,batch);
 
         //other stuff
-        inputHandler = new InputHandler(cameraMovementSystem, uiSystem, this);
+        inputHandler = new InputHandler(cameraMovementSystem, uiSystem, gameMap);
         Gdx.input.setInputProcessor(inputHandler);
 
 
         //testing
         unitManagementSystem.createUnit(1, 5, 5);
-    }
-
-    public void selectHex(float pixelX, float pixelY){
-        uiSystem.selectHex(gameMap.getPixelHex(pixelX, pixelY));
-        if (uiSystem.getSelectedHex() != null) {
-            //cameraMovementSystem.moveCamTo(uiSystem.getSelectedHex().getPixelPos().x + Hex.HexR, uiSystem.getSelectedHex().getPixelPos().y + Hex.HexR);
-        }
     }
 
     @Override
@@ -89,6 +85,7 @@ public class GameScreen implements Screen{
         cameraMovementSystem.update();
         mapRenderer.render();
         unitRenderer.render();
+        uiRenderer.render();
     }
 
 

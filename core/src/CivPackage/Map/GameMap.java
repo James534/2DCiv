@@ -25,6 +25,11 @@ public class GameMap {
                 map[y][x] = new Hex(1, x, y);
             }
         }
+        map[7][5] = new Hex (9,5,7);
+        map[8][5] = new Hex(2,5,8);
+        map[9][5] = new Hex(2,5,9);
+        map[9][4] = new Hex(2,4,9);
+        map[10][5] = new Hex(2,5,10);
     }
 
     public void addUnit(Entity unit){

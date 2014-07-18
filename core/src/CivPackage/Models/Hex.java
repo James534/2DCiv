@@ -21,7 +21,7 @@ public class Hex extends Actor{
     private int id;         //what this tile is
     private int resource;   //id of the resource
     private int SRCount;    //amount of strategic resource, iron, horses, etc
-    private int cost;       //how much it costs to move across this tile
+    private float cost;       //how much it costs to move across this tile
     private boolean walkable = true;//
     private Entity unit;    //the unit that is currently on this hex
 
@@ -30,7 +30,8 @@ public class Hex extends Actor{
             new Texture("core/assets/Hex2.png")
             , new Texture("core/assets/Hex3.png"), new Texture("core/assets/Hex4.png")
             , new Texture("core/assets/Hex5.png"), new Texture("core/assets/Hex6.png")
-            , new Texture("core/assets/Hex7.png"), new Texture("core/assets/Hex8.png")};
+            , new Texture("core/assets/Hex7.png"), new Texture("core/assets/Hex8.png"), new Texture("core/assets/mountain.png")};
+    public static final Texture highlighted = new Texture("core/assets/Selected.png");
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;
@@ -48,12 +49,14 @@ public class Hex extends Actor{
             even = false;
         }
         this.id = id;
-        texture = textures[id%8];
+        texture = textures[id];
 
-        if (id == 8){
-            walkable = false;
-        }
         cost = id;
+        if (id == 9){
+            walkable = false;
+        }else if (id == 5){
+            cost = 0.5f;
+        }
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
@@ -78,6 +81,6 @@ public class Hex extends Actor{
     public boolean getEven(){return even;}
     public Entity getUnit() {return unit;}
     public void addUnit(Entity unit){this.unit = unit;}
-    public int getCost(){return cost;}
+    public float getCost(){return cost;}
     public boolean getWalkable(){return walkable;}
 }

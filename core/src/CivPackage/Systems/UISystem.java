@@ -18,6 +18,7 @@ public class UISystem {
     private PathfindingSystem pfs;
     private Hex selected;       //currently selected hex
     private Array<Hex> surrounding;
+    private Array<Hex> path;
 
     private Table table;
 
@@ -28,22 +29,35 @@ public class UISystem {
         pfs = new PathfindingSystem(map);
         table = new Table();    //add skin
         surrounding = new Array<Hex>();
+        path = new Array<Hex>();
+    }
+
+    public void setPath(Hex h){
+        if (path.size > 0){
+            for (Hex hex: path){
+                hex.selected(false);
+            }
+        }
+        path = pfs.getPath(selected.getMapX(), selected.getMapY(), h.getMapX(), h.getMapY());
+        for (Hex hex: path){
+            hex.selected(true);
+        }
     }
 
     private void showMovement(){
         int x = selected.getMapX();
         int y = selected.getMapY();
         surrounding = pfs.getHexInRange(x, y, map.getHex(x,y).getUnit().getMovement());
-        for (Hex h: surrounding){
+        /*for (Hex h: surrounding){
             h.selected(true);
-        }
+        }*/
     }
 
     public void cancelSelection(){
         selected = null;
-        for (Hex h: surrounding){
+        /*for (Hex h: surrounding){
             h.selected(false);
-        }
+        }*/
         surrounding.clear();
     }
 
@@ -53,7 +67,7 @@ public class UISystem {
             System.out.println("Unit: " + selected.getUnit());
             showMovement();
         }else{
-            if (surrounding.contains(selected,false)){
+            if (surrounding.contains(selected,false) && selected != this.selected){
                 ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY());
             }
             cancelSelection();
@@ -63,5 +77,5 @@ public class UISystem {
     public Hex getSelectedHex(){
         return selected;
     }
-
+    public Array<Hex> getSurrounding(){return surrounding;}
 }
