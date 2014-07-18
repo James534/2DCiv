@@ -71,7 +71,7 @@ public class PathfindingSystem {
                             }
                         }
 
-                        n.parent = best;
+                        //n.parent = best;
                         open.removeValue(n, false);
                         closed.removeValue(n, false);
                         open.add(n);
@@ -114,7 +114,7 @@ public class PathfindingSystem {
         getHexInRange(x,y,range,path);
         return path;
     }
-    public void getHexInRange(int x, int y, float range, Array<Hex> path){
+    private void getHexInRange(int x, int y, float range, Array<Hex> path){
         Array<Hex> open = new Array<Hex>();
         for (Hex h: getNeighbours(x,y)) {
             if (!path.contains(h, true) && h.getWalkable()) {
@@ -150,10 +150,11 @@ public class PathfindingSystem {
     }
 
     private void checkNode(int x, int y, Node p){
-        //System.out.println(x + " " + y);
-        if (nodes[y][x] == null){
-            nodes[y][x] = new Node(x,y,p);
-            nodes[y][x].walkable = map.getHex(x,y).getWalkable();
+        if (x>=0 && x <nodes[0].length && y >= 0 && y <nodes.length) {
+            if (nodes[y][x] == null) {
+                nodes[y][x] = new Node(x, y, p);
+                nodes[y][x].walkable = map.getHex(x, y).getWalkable();
+            }
         }
     }
 
@@ -170,22 +171,30 @@ public class PathfindingSystem {
         checkNode(x,y+1,nodes[y][x]);
         checkNode(x-1,y,nodes[y][x]);
         checkNode(x+1,y,nodes[y][x]);
-        neighbour.add(nodes[y-1][x]);
-        neighbour.add(nodes[y+1][x]);
-        neighbour.add(nodes[y][x-1]);
-        neighbour.add(nodes[y][x+1]);
+        addNode(x,y-1,neighbour);
+        addNode(x,y+1,neighbour);
+        addNode(x-1,y,neighbour);
+        addNode(x+1,y,neighbour);
         if (map.getHex(x,y).getEven()){
             checkNode(x-1,y-1,nodes[y][x]);
             checkNode(x-1,y+1,nodes[y][x]);
-            neighbour.add(nodes[y-1][x-1]);
-            neighbour.add(nodes[y+1][x-1]);
+            addNode(x-1,y-1,neighbour);
+            addNode(x-1,y+1,neighbour);
         }else{
             checkNode(x+1,y-1,nodes[y][x]);
             checkNode(x+1,y+1,nodes[y][x]);
-            neighbour.add(nodes[y-1][x+1]);
-            neighbour.add(nodes[y+1][x+1]);
+            addNode(x+1,y-1,neighbour);
+            addNode(x+1,y+1,neighbour);
         }
         return neighbour;
+    }
+
+    private void addNode(int x, int y, Array<Node> list){
+        if (x>=0 && x<nodes[0].length && y>=0 && y<nodes.length){
+            if (nodes[y][x] != null){
+                list.add (nodes[y][x]);
+            }
+        }
     }
 
     public void updateNodes(){

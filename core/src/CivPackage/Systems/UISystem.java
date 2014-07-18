@@ -33,14 +33,16 @@ public class UISystem {
     }
 
     public void setPath(Hex h){
-        if (path.size > 0){
-            for (Hex hex: path){
-                hex.selected(false);
+        if (h != null) {
+            if (path.size > 0) {
+                for (Hex hex : path) {
+                    hex.selected(false);
+                }
             }
-        }
-        path = pfs.getPath(selected.getMapX(), selected.getMapY(), h.getMapX(), h.getMapY());
-        for (Hex hex: path){
-            hex.selected(true);
+            path = pfs.getPath(selected.getMapX(), selected.getMapY(), h.getMapX(), h.getMapY());
+            for (Hex hex : path) {
+                hex.selected(true);
+            }
         }
     }
 
@@ -62,10 +64,12 @@ public class UISystem {
     }
 
     public void selectHex(Hex selected){
-        if (this.selected == null && selected.getUnit() != null) {
+        if (this.selected == null && selected != null && selected.getUnit() != null) {
             this.selected = selected;
             System.out.println("Unit: " + selected.getUnit());
             showMovement();
+        }else if (selected == null){
+
         }else{
             if (surrounding.contains(selected,false) && selected != this.selected){
                 ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY());
