@@ -17,7 +17,7 @@ public class GameMap {
         this.ySize = ySize;
 
         Random r = new Random(1047155);
-        int[][] heightMap = r.generateTerrain(xSize,ySize);
+        //int[][] heightMap = r.generateTerrain(xSize,ySize);
 
         map = new Hex[ySize][xSize];
         for (int y = 0; y < map.length; y++){
@@ -30,6 +30,8 @@ public class GameMap {
         map[9][5] = new Hex(2,5,9);
         map[9][4] = new Hex(2,4,9);
         map[10][5] = new Hex(2,5,10);
+        map[10][6] = new Hex(2,6,10);
+        map[10][7] = new Hex(2,7,10);
     }
 
     public void addUnit(Entity unit){

@@ -41,6 +41,18 @@ public class Entity extends Actor{
         pixelPos.y += 20;
     }
 
+    public boolean move(float d){
+        if (movement - d >= 0){
+            movement -= d;
+            return true;
+        }else{
+            return false;
+        }
+    }
+    public void resetMovement(){
+        movement = maxMovement;
+    }
+
     public void draw (SpriteBatch batch, float Alpha){
 
     }

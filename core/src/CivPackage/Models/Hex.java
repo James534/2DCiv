@@ -1,6 +1,8 @@
 package CivPackage.Models;
 
 import CivPackage.MathCalc;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -31,7 +33,8 @@ public class Hex extends Actor{
             , new Texture("core/assets/Hex3.png"), new Texture("core/assets/Hex4.png")
             , new Texture("core/assets/Hex5.png"), new Texture("core/assets/Hex6.png")
             , new Texture("core/assets/Hex7.png"), new Texture("core/assets/Hex8.png"), new Texture("core/assets/mountain.png")};
-    public static final Texture highlighted = new Texture("core/assets/Selected.png");
+    public static final Texture SELECTED = new Texture("core/assets/Selected.png");
+    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;

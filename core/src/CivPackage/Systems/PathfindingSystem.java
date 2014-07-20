@@ -24,11 +24,11 @@ public class PathfindingSystem {
     }
 
     /**
-     * Finds the best path using A*
-     * @param sx
-     * @param sy
-     * @param ex
-     * @param ey
+     * Finds the best path from [sy][sx] to [ey][ex] using A*
+     * @param sx Starting X
+     * @param sy Starting Y
+     * @param ex Ending X
+     * @param ey Ending Y
      * @return
      */
     public Array<Hex> getPath(int sx, int sy, int ex, int ey){
@@ -38,7 +38,7 @@ public class PathfindingSystem {
         Array<Hex> path = new Array<Hex>();
         Array<Node> adj = new Array<Node>();
 
-        nodes[sy][sx] = new Node(sx, sy);
+        nodes[sy][sx] = new Node(sx, sy, map.getHex(sx,sy).getCost());
         open.add(nodes[sy][sx]);
 
         while (open.size > 0){
@@ -49,7 +49,7 @@ public class PathfindingSystem {
             if (best.x == ex && best.y == ey){
                 //FOUND THE END
                 Node t = best;
-                while (t != null){
+                while (t != null){      //traces through its parents to get the path it took to get there
                     path.add (map.getHex(t.x, t.y));
                     t = t.parent;
                 }
@@ -59,19 +59,20 @@ public class PathfindingSystem {
 
                 for (Node n: adj){
                     if (n.walkable) {
-                        if (open.contains(n, false)) {
-                            Node temp = new Node(n.x, n.y, n);
+                        if (open.contains(n, false)) {          //if its in open, remake a new node and double check it to make sure the cost is calculated correctly
+                            Node temp = new Node(n.x, n.y, map.getHex(n.x, n.y).getCost(), n);
                             if (temp.getFinalCost() >= n.getFinalCost()) {
                                 continue;
                             }
-                        } else if (closed.contains(n, false)) {
-                            Node temp = new Node(n.x, n.y, n);
+                        } else if (closed.contains(n, false)) { //same with closed
+                            Node temp = new Node(n.x, n.y, map.getHex(n.x, n.y).getCost(), n);
                             if (temp.getFinalCost() >= n.getFinalCost()) {
                                 continue;
                             }
                         }
 
                         //n.parent = best;
+                        //removes it from both open and closed and reads it to open
                         open.removeValue(n, false);
                         closed.removeValue(n, false);
                         open.add(n);
@@ -83,6 +84,10 @@ public class PathfindingSystem {
         return path;
     }
 
+    /**
+     * Finds the best node (lowest final heuristic) from the Open list
+     * @return
+     */
     private Node findBestNode(){
         Node best = open.get(0);
         for (Node n: open){
@@ -149,10 +154,17 @@ public class PathfindingSystem {
         return neighbours;
     }
 
+    /**
+     * Checks if the Node exists at [y][x] <br>
+     *     If not, creates a new node at [y][x] if it is a valid coordinate
+     * @param x of the new Node/Node being checked
+     * @param y
+     * @param p; Parent of the current checked Node, in case we need to make a new Node
+     */
     private void checkNode(int x, int y, Node p){
         if (x>=0 && x <nodes[0].length && y >= 0 && y <nodes.length) {
             if (nodes[y][x] == null) {
-                nodes[y][x] = new Node(x, y, p);
+                nodes[y][x] = new Node(x, y, map.getHex(x,y).getCost(), p);
                 nodes[y][x].walkable = map.getHex(x, y).getWalkable();
             }
         }
@@ -189,6 +201,12 @@ public class PathfindingSystem {
         return neighbour;
     }
 
+    /**
+     * Method to add a Node to the list specified if it is a valid Node (ie: not out of bounds or null)
+     * @param x of the Node to be added
+     * @param y of the Node to be added
+     * @param list to add the Node to
+     */
     private void addNode(int x, int y, Array<Node> list){
         if (x>=0 && x<nodes[0].length && y>=0 && y<nodes.length){
             if (nodes[y][x] != null){
@@ -197,30 +215,24 @@ public class PathfindingSystem {
         }
     }
 
-    public void updateNodes(){
-        for (int y = 0; y < nodeMap.length; y++){
-            for (int x = 0; x < nodeMap[0].length; x++){
-
-            }
-        }
-    }
-
     private class Node{
-        private int x, y;
+        private int x, y;   //x and y positions in map coordinate
         private boolean walkable;
-        private float startCost, endCost, finalCost;
+        private float startCost, endCost, finalCost;    //heuristics
+        private float cost;
         private Node parent;
 
-        public Node(int sx, int sy){
+        public Node(int sx, int sy, float cost){
             x = sx;
             y = sy;
+            this.cost = cost;
             startCost = 0;
             endCost = getEndCost();
             finalCost = endCost;
         }
 
-        public Node(int sx, int sy, Node p){
-            this (sx,sy);
+        public Node(int sx, int sy, float cost, Node p){
+            this (sx,sy,cost);
             parent = p;
             startCost = parent.startCost+1;
             finalCost = startCost + endCost;
@@ -239,7 +251,7 @@ public class PathfindingSystem {
             int dy = y - ey;
             int dz = dx - dy;
             //return Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz)));
-            return Math.max(Math.abs(dx), Math.abs(dy));
+            return Math.max(Math.abs(dx), Math.abs(dy)) + cost;
         }
     }
 }

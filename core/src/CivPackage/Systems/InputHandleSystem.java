@@ -1,5 +1,6 @@
-package CivPackage;
+package CivPackage.Systems;
 
+import CivPackage.GameProject;
 import CivPackage.Map.GameMap;
 import CivPackage.Screens.GameScreen;
 import CivPackage.Systems.CameraMovementSystem;
@@ -12,13 +13,13 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * Created by james on 6/30/2014.
  */
-public class InputHandler implements InputProcessor{
+public class InputHandleSystem implements InputProcessor{
 
     private CameraMovementSystem cms;
     private UISystem uiSystem;
     private GameMap map;
 
-    public InputHandler(CameraMovementSystem cameraMovementSystem, UISystem uiSystem, GameMap map){
+    public InputHandleSystem(CameraMovementSystem cameraMovementSystem, UISystem uiSystem, GameMap map){
         cms = cameraMovementSystem;
         this.uiSystem = uiSystem;
         this.map = map;
@@ -88,7 +89,9 @@ public class InputHandler implements InputProcessor{
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         if (uiSystem.getSelectedHex() != null){
-            uiSystem.setPath(map.getPixelHex(getMapX(screenX), getMapY(screenY)));
+            if (map.getPixelHex(getMapX(screenX), getMapY(screenY)) != null) {
+                uiSystem.setPath(map.getPixelHex(getMapX(screenX), getMapY(screenY)));
+            }
         }
         return true;
     }

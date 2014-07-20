@@ -37,6 +37,11 @@ public class MapRenderer {
                 batch.draw(gameMap.getHex(x,y+1).getTexture(), x0, y0);
             }
         }
+        //because diamond square generates an odd valued array, i have to render the last row by itself
+        for (int x = 0; x < gameMap.xSize; x++){
+            batch.draw(gameMap.getHex(x,gameMap.ySize-1).getTexture(), x*Hex.HexD, (gameMap.ySize-1)*Hex.HexHS);
+        }
+
 
         batch.end();
     }

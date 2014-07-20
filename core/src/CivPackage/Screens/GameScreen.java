@@ -1,15 +1,12 @@
 package CivPackage.Screens;
 
-import CivPackage.InputHandler;
+import CivPackage.Systems.*;
 import CivPackage.Map.GameMap;
-import CivPackage.Models.Hex;
 import CivPackage.Renderers.MapRenderer;
 import CivPackage.Renderers.UiRenderer;
 import CivPackage.Renderers.UnitRenderer;
-import CivPackage.Systems.CameraMovementSystem;
-import CivPackage.Systems.UISystem;
-import CivPackage.Systems.UnitManagementSystem;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -30,10 +27,13 @@ public class GameScreen implements Screen{
     private MapRenderer mapRenderer;
     private UnitRenderer unitRenderer;
     private UiRenderer uiRenderer;
-    private InputHandler inputHandler;
+
+    private InputMultiplexer multiplexer;
+    private InputHandleSystem inputHandleSystem;
     private CameraMovementSystem cameraMovementSystem;
     private UnitManagementSystem unitManagementSystem;
     private UISystem uiSystem;
+    private PlayerSystem playerSystem;
 
 
     public GameScreen(){
@@ -43,8 +43,9 @@ public class GameScreen implements Screen{
         stage = new Stage();
 
         //systems
+        playerSystem = new PlayerSystem();
         unitManagementSystem = new UnitManagementSystem(0, gameMap);     //creates a new unit management system for the human player
-        uiSystem = new UISystem(gameMap, unitManagementSystem, stage);
+        uiSystem = new UISystem(gameMap, unitManagementSystem,playerSystem, stage);
         cameraMovementSystem = new CameraMovementSystem(camera,
                 gameMap.getHex(0,0).getPixelPos().x,gameMap.getHex(0,0).getPixelPos().y,
                 gameMap.getHex(gameMap.xSize-1,0).getPixelPos().x, gameMap.getHex(0,gameMap.ySize-1).getPixelPos().y);
@@ -52,11 +53,14 @@ public class GameScreen implements Screen{
         //renderers
         mapRenderer = new MapRenderer(camera, gameMap, batch);
         unitRenderer = new UnitRenderer(camera, unitManagementSystem, batch);
-        uiRenderer = new UiRenderer(camera,uiSystem,batch);
+        uiRenderer = new UiRenderer(camera,uiSystem,batch, stage);
 
         //other stuff
-        inputHandler = new InputHandler(cameraMovementSystem, uiSystem, gameMap);
-        Gdx.input.setInputProcessor(inputHandler);
+        multiplexer = new InputMultiplexer();
+        inputHandleSystem = new InputHandleSystem(cameraMovementSystem, uiSystem, gameMap);
+        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(inputHandleSystem);
+        Gdx.input.setInputProcessor(multiplexer);
 
 
         //testing
