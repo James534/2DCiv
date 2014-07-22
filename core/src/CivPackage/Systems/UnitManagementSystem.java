@@ -28,9 +28,17 @@ public class UnitManagementSystem {
 
     public void moveUnit (Entity u, int x, int y){
         if (units.contains(u, false)){
-            gameMap.getHex(x, y).addUnit(u);
-            gameMap.getHex(u.getMapX(),u.getMapY()).addUnit(null);
-            u.setMapPos(new Vector2(x,y));
+            float d = (float)Math.max (
+                    Math.abs(y - u.getMapY()),
+                    Math.abs( (x+Math.floor(y/2f)) - (u.getMapX()+Math.floor(u.getMapY()/2f)) ));
+
+            if (u.move(d)) {    //if the unit can move that far, move it
+                gameMap.getHex(x, y).addUnit(u);
+                gameMap.getHex(u.getMapX(), u.getMapY()).addUnit(null);
+                u.setMapPos(new Vector2(x, y));
+            }else{
+                System.out.println(u.getName() + " cant move that far!");
+            }
         }
     }
 

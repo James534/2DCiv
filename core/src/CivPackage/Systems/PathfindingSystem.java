@@ -11,7 +11,6 @@ public class PathfindingSystem {
 
     private GameMap map;
     private Node[][] nodes;
-    private boolean[][] nodeMap;
 
     private Array<Node> open, closed;
     private int ex, ey;
@@ -36,7 +35,7 @@ public class PathfindingSystem {
         this.ex = ex;
         this.ey = ey;
         Array<Hex> path = new Array<Hex>();
-        Array<Node> adj = new Array<Node>();
+        Array<Node> adj;
 
         nodes[sy][sx] = new Node(sx, sy, map.getHex(sx,sy).getCost());
         open.add(nodes[sy][sx]);
@@ -101,7 +100,6 @@ public class PathfindingSystem {
     private void reset(){
         open.clear();
         closed.clear();
-        nodeMap = new boolean[map.ySize][map.xSize];
         nodes = new Node[map.ySize][map.xSize];
         ex = 0;
         ey = 0;
@@ -249,8 +247,6 @@ public class PathfindingSystem {
         private float getEndCost(){
             int dx = x - ex;
             int dy = y - ey;
-            int dz = dx - dy;
-            //return Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz)));
             return Math.max(Math.abs(dx), Math.abs(dy)) + cost;
         }
     }

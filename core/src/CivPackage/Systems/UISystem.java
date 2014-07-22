@@ -102,20 +102,28 @@ public class UISystem {
      * @param selected
      */
     public void selectHex(Hex selected){
-        //if theres nothing selected, and the selection is valid, and there is a unit on that hex
-        if (this.selected == null && selected != null && selected.getUnit() != null) {
+        //if theres nothing selected, and the selection is valid, and there is a unit on that hex, and that unit can move
+        if (this.selected == null && selected != null && selected.getUnit() != null && selected.getUnit().getMovement() > 0) {
             this.selected = selected;
             System.out.println("Unit: " + selected.getUnit());
 
             int x = selected.getMapX();
             int y = selected.getMapY();
             surrounding = pfs.getHexInRange(x, y, map.getHex(x,y).getUnit().getMovement());
-            surrounding.removeValue(map.getHex(x,y), false);    //gets rid of the current tile on the selection
-        }else if (selected == null){    //if the newly selected tile is out of bounds, do nothing
-        }else{
+            //gets rid of the current tile on the selection
+            surrounding.removeValue(map.getHex(x,y), false);
+        }else if (selected != this.selected){
             //if the surrounding tile contains the newly selected tile, and its not the same tile
-            if (surrounding.contains(selected,false) && selected != this.selected){
-                ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY());  //moves the unit from the old tile to the new tile
+            if (surrounding.contains(selected,false)){
+                //moves the unit from the old tile to the new tile
+                ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY());
+            }else if (path.size > 0){ //if a path is defined; if the user selects a tile outside of the walkable range
+                for (int i = path.size-1; i >= 0; i--){
+                    if (surrounding.contains(path.get(i), false) == false){
+                        //if the surrounding tiles dosnt contain the path anymore, than the last path is the max in the movement range
+                        ums.moveUnit(this.selected.getUnit(), path.get(i+1).getMapX(), path.get(i+1).getMapY());
+                    }
+                }
             }
             cancelSelection();
         }
