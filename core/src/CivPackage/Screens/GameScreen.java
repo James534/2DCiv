@@ -37,7 +37,7 @@ public class GameScreen implements Screen{
 
 
     public GameScreen(){
-        gameMap = new GameMap(33,33);
+        gameMap = new GameMap(65,65);
         camera = new OrthographicCamera();
         batch = new SpriteBatch();
         stage = new Stage();

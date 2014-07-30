@@ -26,11 +26,12 @@ public class UnitManagementSystem {
         unitId = 0;
     }
 
-    public void moveUnit (Entity u, int x, int y){
+    public void moveUnit (Entity u, int x, int y, float d){
         if (units.contains(u, false)){
-            float d = (float)Math.max (
+
+            /*float d = (float)Math.max (
                     Math.abs(y - u.getMapY()),
-                    Math.abs( (x+Math.floor(y/2f)) - (u.getMapX()+Math.floor(u.getMapY()/2f)) ));
+                    Math.abs( (x+Math.floor(y/2f)) - (u.getMapX()+Math.floor(u.getMapY()/2f)) ));*/
 
             if (u.move(d)) {    //if the unit can move that far, move it
                 gameMap.getHex(x, y).addUnit(u);

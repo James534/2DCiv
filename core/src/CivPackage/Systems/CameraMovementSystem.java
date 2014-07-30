@@ -75,8 +75,8 @@ public class CameraMovementSystem {
         camZoom = Math.round(camZoom)/5f;
         if (camZoom < 0.4)
             camZoom = 0.4f;
-        else if (camZoom > 2){
-            camZoom = 2;
+        else if (camZoom > 4){
+            camZoom = 4;
         }
         camVel.x = camSpeed.x * camZoom;
         camVel.y = camSpeed.y * camZoom;

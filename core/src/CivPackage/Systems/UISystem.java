@@ -112,16 +112,26 @@ public class UISystem {
             surrounding = pfs.getHexInRange(x, y, map.getHex(x,y).getUnit().getMovement());
             //gets rid of the current tile on the selection
             surrounding.removeValue(map.getHex(x,y), false);
-        }else if (selected != this.selected){
+        }else if (selected != this.selected){ /** ----- Not sure if this should be in UISystem or UnitManagementSystem **/
             //if the surrounding tile contains the newly selected tile, and its not the same tile
             if (surrounding.contains(selected,false)){
+                float d = 0;
+                for (Hex h: path){
+                    if (surrounding.contains(h, false)){
+                        d += h.getCost();       //gets the cost of moving from the current tile to the new tile
+                    }
+                }
                 //moves the unit from the old tile to the new tile
-                ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY());
+                ums.moveUnit(this.selected.getUnit(), selected.getMapX(), selected.getMapY(), d);
             }else if (path.size > 0){ //if a path is defined; if the user selects a tile outside of the walkable range
+                float d = 0;
                 for (int i = path.size-1; i >= 0; i--){
-                    if (surrounding.contains(path.get(i), false) == false){
+                    if (surrounding.contains(path.get(i), false)){
+                        d += path.get(i).getCost();                 //gets the cost it takes to move from current tile to new tile
+                    }
+                    else{
                         //if the surrounding tiles dosnt contain the path anymore, than the last path is the max in the movement range
-                        ums.moveUnit(this.selected.getUnit(), path.get(i+1).getMapX(), path.get(i+1).getMapY());
+                        ums.moveUnit(this.selected.getUnit(), path.get(i+1).getMapX(), path.get(i+1).getMapY(), d);
                     }
                 }
             }
