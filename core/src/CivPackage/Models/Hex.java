@@ -28,13 +28,13 @@ public class Hex extends Actor{
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static Texture[] textures = {new Texture("core/assets/Hex0.png"), new Texture("core/assets/Hex1.png"),
-            new Texture("core/assets/Hex2.png")
-            , new Texture("core/assets/Hex3.png"), new Texture("core/assets/Hex4.png")
-            , new Texture("core/assets/Hex5.png"), new Texture("core/assets/Hex6.png")
-            , new Texture("core/assets/Hex7.png"), new Texture("core/assets/Hex8.png"), new Texture("core/assets/mountain.png")};
-    public static final Texture SELECTED = new Texture("core/assets/Selected.png");
-    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Path.png"));
+    private static Texture[] textures = {new Texture("core/assets/Hex/Hex0.png")
+            , new Texture("core/assets/Hex/OceanDeep.png"), new Texture("core/assets/Hex/OceanLight.png")
+            , new Texture("core/assets/Hex/Beach.png"), new Texture("core/assets/Hex/Grass.png")
+            , new Texture("core/assets/Hex/Hex3.png"), new Texture("core/assets/Hex/Hex4.png")
+            , new Texture("core/assets/Hex/Hex5.png"), new Texture("core/assets/Hex/Hex6.png"), new Texture("core/assets/Hex/Mountain.png")};
+    public static final Texture SELECTED = new Texture("core/assets/Hex/Selected.png");
+    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Hex/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;

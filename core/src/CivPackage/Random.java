@@ -105,24 +105,28 @@ public class Random {
      */
     public int[][] generateTerrain(int xSize, int ySize){
         float [][] map = new float[ySize][xSize];
-        map[0][0]               = 28;//inRange(0, 20, 30);
-        map[0][xSize-1]         = 28;//inRange(0, 20, 30);
-        map[ySize-1][0]         = 28;//inRange(0, 20, 30);
-        map[ySize-1][xSize-1]   = 28;//inRange(0, 20, 30);
+        map[0][0]               = inRange(0, 20, 30);
+        map[0][xSize-1]         = inRange(0, 20, 30);
+        map[ySize-1][0]         = inRange(0, 20, 30);
+        map[ySize-1][xSize-1]   = inRange(0, 20, 30);
 
-        int step = 7;
-        float variation = 4f;
-        int size = xSize;
+        map[0][xSize/2]         = inRange(0, 20, 30);
+        map[ySize/2][0]         = inRange(0, 20, 30);
+        map[ySize/2][xSize/2]   = inRange(0, 20, 30);
+        map[ySize/2][xSize-1]   = inRange(0, 20, 30);
+        map[ySize-1][xSize/2]   = inRange(0, 20, 30);
+
+        int step = 5;
+        float variation = 2f;
+        int size = xSize/2;
         int hSize = size/2;
 
         int x0 = 0;         //four corners of the square
         int y0 = 0;
-        int x1 = xSize-1;
-        int y1 = ySize-1;
+        int x1 = xSize/2;
+        int y1 = ySize/2;
         int x, y;
         float a,b,c,d;
-        float max = 0;
-        float min = 9999;
         float ln = 4;
         Array<Float> al = new Array<Float>(4);
         //http://www.javaworld.com/article/2076745/learn-java/3d-graphic-java--render-fractal-landscapes.html
@@ -269,74 +273,219 @@ public class Random {
                     }else{
                         System.out.print((int)map[Y][X] + " ");
                     }
-                    if (map[Y][X] > max) max = map[Y][X];
-                    else if (map[Y][X] < min && map[Y][X] != 0) min = map[Y][X];
                 }
                 System.out.println();
             }
             System.out.println("________________");
-            System.out.println( variation);
-            System.out.println("min " + min + " max " + max);
+            System.out.println(variation);
         }
+
+        //Converts the randomized data to a Standard Normal Distribution
+        //the random data is close enough to a Normal Distribution so i can just base the terrain on the Z score
+        float mean = 0;
+        float stdDev = 0;
+        int counter = 0;
+        float max = -9999;
+        float min = 9999;
+        float maxZ = -9999;
+        float minZ = 9999;
+        Array<Float> fl = new Array<Float>();
+        for (int Y = 0; Y < map.length; Y++) {              //gets the mean
+            for (int X = 0; X < map[0].length; X++) {
+                mean += map[Y][X];
+                counter++;
+                fl.add(map[Y][X]);
+            }
+        }
+        mean /= counter;                                   //calculates the mean from the total
+        for (Float f: fl){
+            stdDev += (f-mean) * (f-mean);
+            if (f > max) max = f;
+            else if (f < min && f != 0) min = f;
+        }
+        stdDev /= counter;                                  //gets variance
+        stdDev = (float)Math.sqrt(stdDev);                  //gets standard deviation
+
+        //convert the values to "Z" values
+        for (int Y = 0; Y < map.length; Y++) {
+            for (int X = 0; X < map[0].length; X++) {
+                map[Y][X] = (map[Y][X] - mean)/stdDev;      //converts the map[y][x] value to it's Z value
+                if (map[Y][X] > maxZ) maxZ = map[Y][X];     //gets the max and min of the z value
+                else if (map[Y][X] < minZ) minZ = map[Y][X];
+            }
+        }
+
+        System.out.println("min " + minZ + " max " + maxZ);
+        System.out.println (mean);                          //mean
+        fl.sort();
+        System.out.println (fl.get((fl.size-1)/2));         //median
 
         int[][] finalMap = new int[ySize][xSize];
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
-                if (map[Y][X] > (max+min)/2){
-                    finalMap[Y][X] = 1;
+                if (map[Y][X] < 0){
+                    finalMap[Y][X] = 1;     //deep ocean
+                }else if (map[Y][X] < 0.75){
+                    finalMap[Y][X] = 3;     //desert?
+                }else if (map[Y][X] < 2){
+                    finalMap[Y][X] = 4;     //grass
                 }else{
-                    finalMap[Y][X] = 2;
+                    finalMap[Y][X] = 6;     //hills
                 }
-                /*if (map[Y][X] < 0) {
-                    finalMap[Y][X] = 0;
-                }else{
-                    finalMap[Y][X] = Math.round(map[Y][X]);
-                }*/
-                //finalMap[Y][X] = Math.round(Math.abs(map[Y][X]));
-                //System.out.print(finalMap[Y][X] + " ");
             }
-            //System.out.println();
         }
-        //finalMap = smooth(finalMap);
+        finalMap = smoothLand(finalMap);    //smooths out the land, gets rid of the random 1 hex islands
+        finalMap = smoothLand(finalMap);
+        finalMap = moisture(finalMap);
         return finalMap;
     }
-    private int[][] smooth(int[][] map){
-        int i;
-        int c;
-        for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map[0].length; x++){
-                i = 0;
-                if (map[y][x] == 1){    //only works for now
-                    c = 2;
-                }else{
-                    c = 1;
+
+    private int[][] moisture(int[][] map){
+        Array<Point> adj;
+        for (int i = 6; i >= 3; i--){
+            smooth(map, i, 3);
+        }
+        smooth(map, 1, 2);
+        smooth(map, 1, 2);
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[0].length; x++) {
+                if (map[y][x] == 1){                //if its deep ocean
+                    if (next(0) > 0.2){             //randomly get the neighbours in 1 or 2 range
+                        adj = getPointInRange (x, y, 2);
+                    }else {
+                        adj = getNeighbours(x, y);
+                    }
+                    for (Point p: adj){                 //checks the neighbours
+                        if (valueAt(map, p.x, p.y) > 2){//if there's a land tile
+                            map[y][x] = 2;              //changes this tile to light ocean
+                            break;
+                        }
+                    }
                 }
-                try{
-                    if (map[y][x+1] == c){
-                        i++;
-                    }if (map[y+1][x] == c){
-                        i++;
-                    }if (map[y-1][x] == c){
-                        i++;
-                    }if (map[y+1][x+1] == c){
-                        i++;
-                    }if (map[y+1][x-1] == c) {
-                        i++;
-                    }if (map[y-1][x+1] == c){
-                        i++;
-                    }if (map[y+1][x-1] == c){
-                        i++;
+            }
+        }
+        for (int i = 6; i >= 3; i--){
+            smooth(map, i, 3);
+        }
+        return map;
+    }
+
+    private int[][] smooth (int[][] map, int terrain, int threshold){
+        int valueAt;
+        int[] terrains = new int[10];     //the terrain beside this one, based on how many terrains there are
+
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++) {
+                if (map[y][x] == terrain) {
+                    for (int i = 0; i < terrains.length; i++) {      //resets the array
+                        terrains[i] = 0;
                     }
-                    if (i > 4){
-                        //map[y][x] = c;
+                    for (Point p: getNeighbours(x, y)){
+                        valueAt = valueAt(map, p.x, p.y);
+                        if (valueAt != -1 && valueAt > 2){          //if its not invalid and if its not an ocean tile
+                            terrains[valueAt]++;
+                        }
                     }
-                }catch (ArrayIndexOutOfBoundsException e){}
+                    for (int i = 0; i < terrains.length; i++){
+                        if (terrains[i] > threshold) {
+                            map[y][x] = i;
+                        }
+                    }
+                }
             }
         }
         return map;
     }
 
+    /**
+     * Used to smooth out the map
+     * @param map; an array of ints to be smoothed
+     * @return
+     */
+    private int[][] smoothLand(int[][] map){
+        int counter, terrain, max;
+        Array<Point> adj;
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++){
+                counter = 0;
+                max = 4;
+                if (map[y][x] == 1){    //sees if its water or land, and sets terrain accordingly
+                    terrain = 4;
+                }else{
+                    terrain = 1;
+                }
+                adj = getNeighbours(x, y);
+                for (Point p: adj){
+                    if (valueAt(map, p.x, p.y) == terrain){
+                        counter++;
+                    }
+                    if (valueAt(map, p.x, p.y) == -1){
+                        max--;
+                    }
+                }
+                if (counter > max){
+                    map[y][x] = terrain;
+                }
+            }
+        }
+        return map;
+    }
+    /**
+     * Returns an array of the points in range of the specified point
+     * @param x x of the current/specified point
+     * @param y
+     * @param range
+     * @return
+     */
+    public Array<Point> getPointInRange(int x, int y, int range){
+        Array<Point> path = new Array<Point>();
+        getPointInRange(x,y,range,path);
+        return path;
+    }
+    private void getPointInRange(int x, int y, float range, Array<Point> path){
+        if (range > 0) {
+            Array<Point> open = new Array<Point>();
+            for (Point p : getNeighbours(x, y)) {         //gets the neighbours
+                if (p != null) {
+                    if (!path.contains(p, false)) {     //if the path does not already have this point
+                        path.add(p);                    //adds it to the path
+                        open.add(p);                    //adds it to the open list to add it's neighbours to the path later
+                    }
+                }
+            }
+            for (Point p : open) {                      //adds the points in the neighbours to the path
+                getPointInRange(p.x, p.y, range - 1, path);
+            }
+        }
+    }
+    private Array<Point> getNeighbours(int x, int y){
+        Array<Point> neighbours = new Array<Point>(6);
+        if (y%2 == 0){
+            neighbours.add(new Point(x, y - 1));
+            neighbours.add(new Point(x, y + 1));
+            neighbours.add(new Point(x - 1, y));
+            neighbours.add(new Point(x + 1, y));
+            neighbours.add(new Point(x - 1, y - 1));
+            neighbours.add(new Point(x - 1, y + 1));
+        }else{
+            neighbours.add(new Point(x, y - 1));
+            neighbours.add(new Point(x, y + 1));
+            neighbours.add(new Point(x - 1, y));
+            neighbours.add(new Point(x + 1, y));
+            neighbours.add(new Point(x + 1, y - 1));
+            neighbours.add(new Point(x + 1, y + 1));
+        }
+        return neighbours;
+    }
+
     private float valueAt (float[][] map, int x, int y){
+        try{
+            return map[y][x];
+        }catch (ArrayIndexOutOfBoundsException e){
+            return -1;
+        }
+    }
+    private int valueAt (int[][] map, int x, int y){
         try{
             return map[y][x];
         }catch (ArrayIndexOutOfBoundsException e){
