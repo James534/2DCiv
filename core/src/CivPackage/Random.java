@@ -323,18 +323,24 @@ public class Random {
         int[][] finalMap = new int[ySize][xSize];
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
-                if (map[Y][X] < 0){
-                    finalMap[Y][X] = 1;     //deep ocean
+                if (map[Y][X] < -0.2){
+                    finalMap[Y][X] = 1;     //deep ocean, light ocean is 2
+                }else if (map[Y][X] < 0){
+                    finalMap[Y][X] = 3;     //terrain 1
                 }else if (map[Y][X] < 0.75){
-                    finalMap[Y][X] = 3;     //desert?
-                }else if (map[Y][X] < 2){
-                    finalMap[Y][X] = 4;     //grass
+                    finalMap[Y][X] = 4;     //terrain 2
+                }else if (map[Y][X] < 1.5){
+                    finalMap[Y][X] = 5;     //terrain 3
+                }else if (map[Y][X] < 2.25){
+                    finalMap[Y][X] = 6;     //terrain 4
+                }else if (map[Y][X] < 3){
+                    finalMap[Y][X] = 7;     //terrain 5
                 }else{
-                    finalMap[Y][X] = 6;     //hills
+                    finalMap[Y][X] = 9;     //mountains
                 }
             }
         }
-        finalMap = smoothLand(finalMap);    //smooths out the land, gets rid of the random 1 hex islands
+        finalMap = smoothLand(finalMap);    //smooths out the land
         finalMap = smoothLand(finalMap);
         finalMap = moisture(finalMap);
         return finalMap;
@@ -365,9 +371,13 @@ public class Random {
             }
         }
         deleteSingleHex(map, 1);
-        for (int i = 3; i <= 6; i++){
+        for (int i = 3; i <= 8; i++){
             deleteSingleHex(map, i);
         }
+        for (int i = 3; i <= 8; i++){
+            deleteSingleHex(map, i);
+        }
+        deleteSingleHex(map, 1);
         return map;
     }
 
@@ -409,6 +419,13 @@ public class Random {
         return map;
     }
 
+    /**
+     * Smooths out the map
+     * @param map   map to smooth out
+     * @param terrain   terrain to smooth out
+     * @param threshold how many nearby tiles of a different terrain until this terrain changes
+     * @return
+     */
     private int[][] smooth (int[][] map, int terrain, int threshold){
         int valueAt;
         int[] terrains = new int[10];     //the terrain beside this one, based on how many terrains there are

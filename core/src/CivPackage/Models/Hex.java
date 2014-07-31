@@ -31,8 +31,8 @@ public class Hex extends Actor{
     private static Texture[] textures = {new Texture("core/assets/Hex/Hex0.png")
             , new Texture("core/assets/Hex/OceanDeep.png"), new Texture("core/assets/Hex/OceanLight.png")
             , new Texture("core/assets/Hex/Beach.png"), new Texture("core/assets/Hex/Grass.png")
-            , new Texture("core/assets/Hex/Hex3.png"), new Texture("core/assets/Hex/Hex4.png")
-            , new Texture("core/assets/Hex/Hex5.png"), new Texture("core/assets/Hex/Hex6.png"), new Texture("core/assets/Hex/Mountain.png")};
+            , new Texture("core/assets/Hex/Hex5.png"), new Texture("core/assets/Hex/Hex6.png")
+            , new Texture("core/assets/Hex/Hex7.png"), new Texture("core/assets/Hex/Hex8.png"), new Texture("core/assets/Hex/Mountain.png")};
     public static final Texture SELECTED = new Texture("core/assets/Hex/Selected.png");
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Hex/Path.png"));
 
