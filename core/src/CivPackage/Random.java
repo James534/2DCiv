@@ -364,8 +364,47 @@ public class Random {
                 }
             }
         }
-        for (int i = 6; i >= 3; i--){
-            smooth(map, i, 3);
+        deleteSingleHex(map, 1);
+        for (int i = 3; i <= 6; i++){
+            deleteSingleHex(map, i);
+        }
+        return map;
+    }
+
+    /**
+     * Gets rid of the random single hexes
+     * @param map
+     * @param terrain
+     * @return
+     */
+    private int[][] deleteSingleHex(int[][] map, int terrain){
+        int valueAt, max, counter;
+        int[] terrains = new int[10];
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map.length; x++){
+                if (map[y][x] == terrain) {                         //only does these stuff if its on the terrain tile i want to smooth out
+                    max = 0;
+                    counter = terrain;
+                    for (int i = 0; i < terrains.length; i++) {     //resets the array
+                        terrains[i] = 0;
+                    }
+                    for (Point p : getNeighbours(x, y)) {
+                        valueAt = valueAt(map, p.x, p.y);
+                        if (valueAt != -1) {         //if its not invalid and if its not an ocean tile
+                            terrains[valueAt]++;
+                        }
+                    }
+                    if (terrains[terrain] < 2){                     //if there's less than 2 hexes of the same terrain
+                        for (int i = 0; i < terrains.length; i++){
+                            if (terrains[i] > max){
+                                max = terrains[i];
+                                counter = i;
+                            }
+                        }
+                        map[y][x] = counter;
+                    }
+                }
+            }
         }
         return map;
     }
@@ -376,8 +415,8 @@ public class Random {
 
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++) {
-                if (map[y][x] == terrain) {
-                    for (int i = 0; i < terrains.length; i++) {      //resets the array
+                if (map[y][x] == terrain) {                         //only does these stuff if its on the terrain tile i want to smooth out
+                    for (int i = 0; i < terrains.length; i++) {     //resets the array
                         terrains[i] = 0;
                     }
                     for (Point p: getNeighbours(x, y)){
