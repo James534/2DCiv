@@ -21,7 +21,7 @@ public class Random {
      * @return
      */
     public int[][] generateTerrain(int xSize, int ySize){
-        float[][] map = diamondSquare(xSize, ySize, 2f);    //generates the map
+        float[][] map = diamondSquare(xSize, ySize, 32, 2f);    //generates the map
         map = zScores(map);                             //converts the map to a z score
 
         //Landmass Codes:
@@ -70,7 +70,7 @@ public class Random {
          */
         //http://pcg.wikidot.com/pcg-algorithm:fractal-river-basins   generate rivers
 
-        float[][] climateMap = diamondSquare(map[0].length, map.length, 12f);
+        float[][] climateMap = diamondSquare(map[0].length, map.length, 64, 8f);
         climateMap = zScores(climateMap);
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map.length; x++) {
@@ -156,33 +156,24 @@ public class Random {
      * @param ySize     height of the map, must be 2^n + 1
      * @return          a 2d array of floats representing the map
      */
-    private float[][] diamondSquare(int xSize, int ySize, float variation){
+    private float[][] diamondSquare(int xSize, int ySize, int size, float variation){
         float [][] map = new float[ySize][xSize];
-        /*map[0][0]               = inRange(0, 20, 30);
-        map[0][xSize-1]         = inRange(0, 20, 30);
-        map[ySize-1][0]         = inRange(0, 20, 30);
-        map[ySize-1][xSize-1]   = inRange(0, 20, 30);
-
-        map[0][xSize/2]         = inRange(0, 20, 30);
-        map[ySize/2][0]         = inRange(0, 20, 30);
-        map[ySize/2][xSize/2]   = inRange(0, 20, 30);
-        map[ySize/2][xSize-1]   = inRange(0, 20, 30);
-        map[ySize-1][xSize/2]   = inRange(0, 20, 30);*/
-        for (int y = 0; y <= ySize/32; y++){     //splits it up into 32x32 chunks
-            for (int x = 0; x <= xSize/32; x++){
-                System.out.println (x + " " + y + " generate");
-                map[y*32][x*32] = inRange(0, 20, 30);
+        if (!(size > 0 && (size & (size-1)) == 0 )){
+            size = 32;
+        }
+        for (int y = 0; y <= ySize/size; y++){     //splits it up into 32x32 chunks
+            for (int x = 0; x <= xSize/size; x++){
+                map[y*size][x*size] = inRange(0, 20, 30);
             }
         }
 
-        int step = 5;
-        int size = xSize/2;
+        int step = (int)Math.round(Math.log(size)/Math.log(2));    //uses log identities to find out how many times i have to run the algorithm; its log2(chunkSize)
         int hSize = size/2;
 
         int x0 = 0;         //four corners of the square
         int y0 = 0;
-        int x1 = xSize/2;
-        int y1 = ySize/2;
+        int x1 = size;
+        int y1 = size;
         int x, y;
         float a,b,c,d;
         Array<Float> al = new Array<Float>(4);
