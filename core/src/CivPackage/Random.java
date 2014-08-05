@@ -21,7 +21,27 @@ public class Random {
      * @return
      */
     public int[][] generateTerrain(int xSize, int ySize){
-        float[][] map = diamondSquare(xSize, ySize, 32, 2f);    //generates the map
+        float[][] map = diamondSquare(xSize, ySize, 32, 4f, true);    //generates the map
+
+        float[][][] mapGen = new float[5][ySize][xSize];
+        int size = 64;
+        float variation = 16;
+        for (int i = 0; i < mapGen.length; i++){
+            mapGen[i] = diamondSquare(xSize, ySize, size, variation, false);
+            size /= 2;
+            variation /= 1.3;
+            for (int y = 0; y < mapGen[0].length; y++){
+                for (int x = 0; x < mapGen[0][0].length; x++){
+                    if (i%2 == 0) {
+                        map[y][x] += mapGen[i][y][x];
+                    }else{
+                        map[y][x] += mapGen[i][mapGen[0].length-1-y][x];
+                    }
+                }
+            }
+        }
+
+        map = gradient(map);
         map = zScores(map);                             //converts the map to a z score
 
         //Landmass Codes:
@@ -49,6 +69,29 @@ public class Random {
         return finalMap;
     }
 
+    private float[][] gradient(float[][] map){
+
+        for (int x = 0; x < map[0].length; x++){
+            for (int y = 0; y < map.length/9; y++) {
+                map[y][x] *= y/(map.length/9) * next(0);
+            }
+            for (int y = map.length - map.length/9; y < map.length; y++){
+                map[y][x] *= (y-map.length)/(map.length/9) * next(0);
+            }
+        }
+
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length/8; x++){
+                map[y][x] *= x/(map[0].length/8);
+            }
+            for (int x = map[0].length - map[0].length/8; x < map[0].length; x++){
+                map[y][x] *= (x-map[0].length)/(map[0].length/8);
+            }
+        }
+
+        return map;
+    }
+
     /**
      * Generates the terrain and features of the map <br>
      *     There are 3 main terrains; plains, grasslands, and desert <br>
@@ -68,32 +111,69 @@ public class Random {
         50-59 is snow               x9 is mountain
         60+ are wonders
          */
+        //http://pcg.wikidot.com/pcg-algorithm:map-generation
         //http://pcg.wikidot.com/pcg-algorithm:fractal-river-basins   generate rivers
 
-        float[][] climateMap = diamondSquare(map[0].length, map.length, 64, 8f);
-        climateMap = zScores(climateMap);
-        for (int y = 0; y < map.length; y++) {
-            for (int x = 0; x < map.length; x++) {
-                if (map[y][x] > 2){
-                    if (climateMap[y][x] < -0.75){
-                        climateMap[y][x] = 10;
-                    }else if (climateMap[y][x] < 0.75) {
-                        climateMap[y][x] = 20;
+        /*--------------------------------------- Generating noise -----------------------------------------*/
+        float[][] climateMap = diamondSquare(map[0].length, map.length, 8, 8f, false);
+        float[][][] mapGen = new float[5][map.length][map[0].length];                       //generates more noise, to "average" it out
+        int size = 64;
+        float variation = 2;
+        for (int i = 0; i < mapGen.length; i++){
+            mapGen[i] = diamondSquare(map[0].length, map.length, size, variation, false);
+            size /= 2;
+            variation *= 1.3;
+            for (int y = 0; y < mapGen[0].length; y++){
+                for (int x = 0; x < mapGen[0][0].length; x++){
+                    if (i%2 == 0) {
+                        climateMap[y][x] += mapGen[i][y][x];
                     }else{
-                        climateMap[y][x] = 30;
+                        climateMap[y][x] += mapGen[i][mapGen[0].length-1-y][x];             //flips the y axis every other run, to help get rid of artifacts
+                    }
+                }
+            }
+        }
+        /* --------------------------------- Converting noise to terrain ----------------------------------*/
+        climateMap = zScores(climateMap);   //convert it to z score again
+        //converts it to an int array to smooth; have to convert it to semi-Landmass Codes, since the smooth method was written using Landmass Codes
+        int[][] intClimateMap = new int[map.length][map[0].length];
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[0].length; x++) {
+                if (map[y][x] > 2){                         //if its not an ocean tile, do stuff to it
+                    if (climateMap[y][x] < -0.75){
+                        intClimateMap[y][x] = 4;    //4 is plains(10)
+                    }else if (climateMap[y][x] < 0.75) {
+                        intClimateMap[y][x] = 5;    //5 is grassland(20)
+                    }else{
+                        intClimateMap[y][x] = 6;    //6 is desert(30)
                     }
                     if (map[y][x] == 3){
                         map[y][x] = 0;
                     }
                 }else{
-                    climateMap[y][x] = -1;
+                    intClimateMap[y][x] = -1;                  //if it is an ocean tile, ignore it
                 }
             }
         }
+
+        //smooths the int array
+        intClimateMap = smooth(intClimateMap, 5, 2);
+        intClimateMap = smooth(intClimateMap, 4, 2);
+        intClimateMap = smooth(intClimateMap, 6, 2);
+
+
         for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map.length; x++){
-                if (climateMap[y][x] != -1){
-                    map[y][x] += climateMap[y][x];
+            for (int x = 0; x < map[0].length; x++){
+                switch (intClimateMap[y][x]) {
+                    case 4:
+                        map[y][x] += 10;                    //plains
+                        break;
+                    case 5:
+                        map[y][x] += 20;                    //grasslands
+                        break;
+                    case 6:
+                        map[y][x] += 30;                    //desert
+                        break;
                 }
             }
         }
@@ -156,16 +236,41 @@ public class Random {
      * @param ySize     height of the map, must be 2^n + 1
      * @return          a 2d array of floats representing the map
      */
-    private float[][] diamondSquare(int xSize, int ySize, int size, float variation){
+    private float[][] diamondSquare(int xSize, int ySize, int size, float variation, boolean needCenterSeed){
         float [][] map = new float[ySize][xSize];
         if (!(size > 0 && (size & (size-1)) == 0 )){
             size = 32;
         }
         for (int y = 0; y <= ySize/size; y++){     //splits it up into 32x32 chunks
-            for (int x = 0; x <= xSize/size; x++){
+            for (int x = 0; x < xSize/size; x++){
                 map[y*size][x*size] = inRange(0, 20, 30);
             }
         }
+
+        if (needCenterSeed) {
+            try {
+                map[ySize / 2][xSize / 2] = inRange(0, 40, 50);
+                map[ySize / 2 + size][xSize / 2] = inRange(0, 35, 40);
+                map[ySize / 2 - size][xSize / 2] = inRange(0, 35, 40);
+                map[ySize / 2][xSize / 2 + size] = inRange(0, 35, 40);
+                map[ySize / 2][xSize / 2 - size] = inRange(0, 35, 40);
+            } catch (ArrayIndexOutOfBoundsException e) {
+            }
+
+            map[0][0] = inRange(0, 10, 20);
+            map[0][xSize / 2] = inRange(0, 10, 20);
+            map[0][xSize - 1] = inRange(0, 10, 20);
+            map[ySize / 2][0] = inRange(0, 10, 20);
+            map[ySize / 2][xSize - 1] = inRange(0, 10, 20);
+            map[ySize - 1][0] = inRange(0, 10, 20);
+            map[ySize - 1][xSize / 2] = inRange(0, 10, 20);
+            map[ySize - 1][xSize - 1] = inRange(0, 10, 20);
+
+            for (int y = 0; y <= ySize / size; y++) {
+                map[y * size][xSize - 1] = map[y * size][0];
+            }
+        }
+
 
         int step = (int)Math.round(Math.log(size)/Math.log(2));    //uses log identities to find out how many times i have to run the algorithm; its log2(chunkSize)
         int hSize = size/2;
@@ -177,7 +282,6 @@ public class Random {
         int x, y;
         float a,b,c,d;
         Array<Float> al = new Array<Float>(4);
-        //http://www.javaworld.com/article/2076745/learn-java/3d-graphic-java--render-fractal-landscapes.html
         while (step > 0){
             //diamond step
             System.out.println("Diamond");
@@ -220,79 +324,75 @@ public class Random {
             //square step
             while (true){
                 // ==================== left point ======================
-                if (map[y0][x0-hSize] == 0) {
-                    al.clear();
-                    a = (valueAt(map, x0, y0));   //current point, cant be out of bounds
-                    al.add(valueAt(map, x0 - hSize, y0 - hSize));
-                    al.add(valueAt(map, x0 - hSize, y0 + hSize));
-                    al.add(valueAt(map, x0 - size, y0));
-                    //using these variables instead of new ones to save memory
-                    b = al.size+1;
-                    c = a;
-                    for (Float f : al) {
-                        if (f != -1) {   //checks if they are out of bounds
-                            c += f;
-                        } else {
-                            b--;
-                        }
+                al.clear();
+                a = (valueAt(map, x0, y0));   //current point, cant be out of bounds
+                al.add(valueAt(map, x0 - hSize, y0 - hSize));
+                al.add(valueAt(map, x0 - hSize, y0 + hSize));
+                al.add(valueAt(map, x0 - size, y0));
+                //using these variables instead of new ones to save memory
+                b = al.size+1;
+                c = a;
+                for (Float f : al) {
+                    if (f != -1) {   //checks if they are out of bounds
+                        c += f;
+                    } else {
+                        b--;
                     }
-                    x = x0 - hSize;
-                    map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
                 }
+                x = x0 - hSize;
+                map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+
                 // ==================== right point =====================
-                if (map[y0][x0+hSize] == 0) {
-                    al.clear();
-                    al.add(valueAt(map, x0 + hSize, y0 - hSize));
-                    al.add(valueAt(map, x0 + hSize, y0 + hSize));
-                    al.add(valueAt(map, x0 + size, y0));
-                    b = al.size+1;
-                    c = a;
-                    for (Float f : al) {
-                        if (f != -1) {
-                            c += f;
-                        } else {
-                            b--;
-                        }
+                al.clear();
+                al.add(valueAt(map, x0 + hSize, y0 - hSize));
+                al.add(valueAt(map, x0 + hSize, y0 + hSize));
+                al.add(valueAt(map, x0 + size, y0));
+                b = al.size+1;
+                c = a;
+                for (Float f : al) {
+                    if (f != -1) {
+                        c += f;
+                    } else {
+                        b--;
                     }
-                    x = x0 + hSize;
-                    map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
                 }
+                x = x0 + hSize;
+                map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+
                 // ==================== top point =======================
-                if (map[y0+hSize][x0] == 0) {
-                    al.clear();
-                    al.add(valueAt(map, x0 + hSize, y0 + hSize));
-                    al.add(valueAt(map, x0 - hSize, y0 + hSize));
-                    al.add(valueAt(map, x0, y0 + size));
-                    b = al.size+1;
-                    c = a;
-                    for (Float f : al) {
-                        if (f != -1) {
-                            c += f;
-                        } else {
-                            b--;
-                        }
+                al.clear();
+                al.add(valueAt(map, x0 + hSize, y0 + hSize));
+                al.add(valueAt(map, x0 - hSize, y0 + hSize));
+                al.add(valueAt(map, x0, y0 + size));
+                b = al.size+1;
+                c = a;
+                for (Float f : al) {
+                    if (f != -1) {
+                        c += f;
+                    } else {
+                        b--;
                     }
-                    y = y0 + hSize;
-                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
                 }
+                y = y0 + hSize;
+                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+
                 // =================== bottom point =====================
-                if (map[y0-hSize][x0] == 0) {
-                    al.clear();
-                    al.add(valueAt(map, x0 + hSize, y0 + hSize));
-                    al.add(valueAt(map, x0 - hSize, y0 + hSize));
-                    al.add(valueAt(map, x0, y0 + size));
-                    b = al.size+1;
-                    c = a;
-                    for (Float f : al) {
-                        if (f != -1) {
-                            c += f;
-                        } else {
-                            b--;
-                        }
+                al.clear();
+                al.add(valueAt(map, x0 + hSize, y0 - hSize));
+                al.add(valueAt(map, x0 - hSize, y0 - hSize));
+                al.add(valueAt(map, x0, y0 - size));
+                b = al.size+1;
+                c = a;
+                for (Float f : al) {
+                    if (f != -1) {
+                        c += f;
+                    } else {
+                        b--;
                     }
-                    y = y0 - hSize;
-                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
                 }
+                y = y0 - hSize;
+                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+
 
                 x0 += size;
                 if (x0 >= xSize-1){
@@ -479,9 +579,10 @@ public class Random {
         return path;
     }
     private void getPointInRange(int x, int y, float range, Array<Point> path){
+        //not sure if this is the best way to find the neighbours
         if (range > 0) {
             Array<Point> open = new Array<Point>();
-            for (Point p : getNeighbours(x, y)) {         //gets the neighbours
+            for (Point p : getNeighbours(x, y)) {       //gets the neighbours
                 if (p != null) {
                     if (!path.contains(p, false)) {     //if the path does not already have this point
                         path.add(p);                    //adds it to the path

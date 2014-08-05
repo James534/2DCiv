@@ -16,7 +16,7 @@ public class GameMap {
         this.xSize = xSize;
         this.ySize = ySize;
 
-        Random r = new Random(1047157);
+        Random r = new Random(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);
 
