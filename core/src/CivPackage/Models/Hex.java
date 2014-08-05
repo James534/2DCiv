@@ -30,9 +30,10 @@ public class Hex extends Actor{
     private Texture texture;
     private static Texture[] textures = {new Texture("core/assets/Hex/Hex0.png")
             , new Texture("core/assets/Hex/OceanDeep.png"), new Texture("core/assets/Hex/OceanLight.png")
-            , new Texture("core/assets/Hex/Beach.png"), new Texture("core/assets/Hex/Grass.png")
-            , new Texture("core/assets/Hex/Hex5.png"), new Texture("core/assets/Hex/Hex6.png")
-            , new Texture("core/assets/Hex/Hex7.png"), new Texture("core/assets/Hex/Hex8.png"), new Texture("core/assets/Hex/Mountain.png")};
+            , new Texture("core/assets/Hex/Plains.png"), new Texture("core/assets/Hex/PlainsHill.png"), new Texture("core/assets/Hex/PlainsMountain.png")
+            , new Texture("core/assets/Hex/Grass.png"),  new Texture("core/assets/Hex/GrassHill.png"),  new Texture("core/assets/Hex/GrassMountain.png")
+            , new Texture("core/assets/Hex/Desert.png"), new Texture("core/assets/Hex/DesertHill.png"), new Texture("core/assets/Hex/DesertMountain.png")};
+
     public static final Texture SELECTED = new Texture("core/assets/Hex/Selected.png");
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Hex/Path.png"));
 
@@ -52,7 +53,36 @@ public class Hex extends Actor{
             even = false;
         }
         this.id = id;
-        texture = textures[id];
+        texture = textures[id%10];
+        switch (id){
+            case 10:
+                texture = textures[3];
+                break;
+            case 18:
+                texture = textures[4];
+                break;
+            case 19:
+                texture = textures[5];
+                break;
+            case 20:
+                texture = textures[6];
+                break;
+            case 28:
+                texture = textures[7];
+                break;
+            case 29:
+                texture = textures[8];
+                break;
+            case 30:
+                texture = textures[9];
+                break;
+            case 38:
+                texture = textures[10];
+                break;
+            case 39:
+                texture = textures[11];
+                break;
+        }
 
         cost = id;
         if (id == 9){

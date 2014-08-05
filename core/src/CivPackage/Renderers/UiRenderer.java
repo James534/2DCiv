@@ -41,7 +41,7 @@ public class UiRenderer{
     public void render(){
         //draws ui elements
         stage.act();
-        stage.draw();
+        //stage.draw();
         Table.drawDebug(stage);
 
         batch.setProjectionMatrix(cam.combined);

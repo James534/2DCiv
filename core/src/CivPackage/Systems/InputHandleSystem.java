@@ -47,6 +47,10 @@ public class InputHandleSystem implements InputProcessor{
             case Input.Keys.ESCAPE:
                 uiSystem.cancelSelection();
                 break;
+            case Input.Keys.K:
+                cms.moveCamTo(map.getHex(map.xSize-1, map.ySize-1).getPixelPos().x/2,map.getHex(map.xSize-1, map.ySize-1).getPixelPos().y/2);
+                cms.zoomCam(99999);
+                break;
         }
         return false;
     }
@@ -82,6 +86,7 @@ public class InputHandleSystem implements InputProcessor{
             float pixelY = y - screenY * cms.getCamZoom();*/
 
             uiSystem.selectHex(map.getPixelHex(getMapX(screenX), getMapY(screenY)));
+            //System.out.println (map.getPixelHex(getMapX(screenX), getMapY(screenY)).getPos().x + " " + map.getPixelHex(getMapX(screenX), getMapY(screenY)).getPos().y);
         }
         return false;
     }

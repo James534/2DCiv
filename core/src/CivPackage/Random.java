@@ -14,89 +14,6 @@ public class Random {
         random = new java.util.Random(seed);
     }
 
-    public int[][] generateTerrainPerlin(int xSize, int ySize){
-        float [][] map = new float[ySize][xSize];
-        int [][] intMap = new int[ySize][xSize];
-
-        float low = 999;
-        float high = 0;
-        int ix, iy;
-        for (float y = 0; y < ySize/4; y+=0.25){
-            for (float x = 0; x < xSize/4; x+=0.25){
-                ix = Math.round(x*4);
-                iy = Math.round(y*4);
-                map[iy][ix] = perlinNoise(x, y);
-                if (map[iy][ix] > high) high = map[iy][ix];
-                if (map[iy][ix] < low) low = map[iy][ix];
-            }
-        }
-
-        System.out.println(low + " " + high);
-
-        for (int y = 0; y < ySize; y++){
-            for (int x = 0; x < xSize; x++){
-                map[y][x] = (map[y][x] - low)/(high-low);
-                System.out.println(map[y][x]);
-                intMap[y][x] = Math.round(map[y][x] * 2);
-            }
-        }
-        return intMap;
-    }
-
-    private float perlinNoise(float x, float y){
-        //http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
-        float total = 0;
-        float p = 1/4;
-        float n = 5;
-
-        float freq, amp;
-
-        for (int i = 0; i < n; i++){
-            freq = (float)Math.pow(2, i);
-            amp = (float)Math.pow(p, i);
-            total = total + interpolateNoise(x * freq, y * freq) * amp;
-        }
-        return total;
-    }
-
-    private float interpolateNoise (float x, float y){
-        int ix = (int)x;
-        int iy = (int)y;
-        float fX = x-ix;
-        float fY = y-iy;
-
-        float v1 = smoothNoise1(ix, iy);
-        float v2 = smoothNoise1(ix + 1, iy);
-        float v3 = smoothNoise1(ix, iy + 1);
-        float v4 = smoothNoise1(ix + 1, iy + 1);
-
-        float i1 = interpolate(v1, v2, fX);
-        float i2 = interpolate(v3, v4, fX);
-        return interpolate(i1, i2, fY);
-    }
-
-    private float interpolate(float a, float b, float x){
-        double ft = x * 3.1415927f;
-        double f = (1 - Math.cos(ft))* 0.5f;
-        return (float) (a*(1-f) + b*f);
-    }
-
-    private float smoothNoise1 (float x, float y){
-        float corners = (noise1(x-1, y-1) + noise1(x+1, y-1) + noise1(x-1, y+1) + noise1(x+1, y+1) ) /16;
-        float sides = (noise1 (x-1, y) + noise1(x+1, y) + noise1(x, y-1) + noise1(x, y+1) ) /8;
-        float center = noise1(x, y)/4;
-        return corners + sides + center;
-    }
-
-    private float noise1(float x, float y){
-        int n = Math.round(x + y) * 57;
-        n = (n<<13);
-        double N = Math.pow(n, n);
-        N = ( 1 - ( Math.round(N* (N*N * 15731 + 789221) + 1376312589) & 0x7ffff) / 1073741824d);
-        //return (float) N;
-        return random.nextFloat();
-    }
-
     /**
      * Generates the terrain using diamond-square
      * @param xSize
@@ -104,8 +21,144 @@ public class Random {
      * @return
      */
     public int[][] generateTerrain(int xSize, int ySize){
+        float[][] map = diamondSquare(xSize, ySize, 2f);    //generates the map
+        map = zScores(map);                             //converts the map to a z score
+
+        //Landmass Codes:
+        //1 is deep ocean, 2 is light ocean, 3 is land, 8 is hill, 9 is mountain
+        int[][] finalMap = new int[ySize][xSize];
+        for (int Y = 0; Y < map.length; Y++){
+            for (int X = 0; X < map[0].length; X++){
+                if (map[Y][X] < 0.5){
+                    finalMap[Y][X] = 1;     //deep ocean, light ocean is 2, to be added in fixLand
+                }else if (map[Y][X] < 1.4){
+                    finalMap[Y][X] = 3;     //land
+                }else if (map[Y][X] < 1.6){
+                    finalMap[Y][X] = 8;     //hills
+                }else if (map[Y][X] < 1.8){
+                    finalMap[Y][X] = 3;     //land
+                }else if (map[Y][X] < 2.5){
+                    finalMap[Y][X] = 8;     //hills
+                }else{
+                    finalMap[Y][X] = 9;     //mountains
+                }
+            }
+        }
+        finalMap = fixLand(finalMap);       //fixes up the patchy land and adds light ocean
+        finalMap = moisture(finalMap);      //generates the other terrain
+        return finalMap;
+    }
+
+    /**
+     * Generates the terrain and features of the map <br>
+     *     There are 3 main terrains; plains, grasslands, and desert <br>
+     *     Tundra and snow are near the poles
+     * @param       map using Landmass Codes
+     * @return      map with terrain and features, using Terrain Codes
+     */
+    private int[][] moisture(int[][] map){
+        /*
+        Terrain codes:              Terrain feature codes:
+        -1 is invalid               x0 is regular
+        0-9 is water stuff          x1 is forest/jungle
+        10-19 is plains
+        20-29 is grassland
+        30-39 is desert
+        40-49 is tundra             x8 is hill
+        50-59 is snow               x9 is mountain
+        60+ are wonders
+         */
+        //http://pcg.wikidot.com/pcg-algorithm:fractal-river-basins   generate rivers
+
+        float[][] climateMap = diamondSquare(map[0].length, map.length, 12f);
+        climateMap = zScores(climateMap);
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map.length; x++) {
+                if (map[y][x] > 2){
+                    if (climateMap[y][x] < -0.75){
+                        climateMap[y][x] = 10;
+                    }else if (climateMap[y][x] < 0.75) {
+                        climateMap[y][x] = 20;
+                    }else{
+                        climateMap[y][x] = 30;
+                    }
+                    if (map[y][x] == 3){
+                        map[y][x] = 0;
+                    }
+                }else{
+                    climateMap[y][x] = -1;
+                }
+            }
+        }
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map.length; x++){
+                if (climateMap[y][x] != -1){
+                    map[y][x] += climateMap[y][x];
+                }
+            }
+        }
+        return map;
+    }
+
+    /**
+     * Converts the map to a Z score map <br>
+     *      The "Z" score is based on normal distribution, and the diamond square's output numbers are close enough to a normal distribution
+     * @param map   map to be converted to it's Z score
+     * @return      Z score map, where 0 is average, negative is below average, and positive is above average
+     */
+    private float[][] zScores(float[][] map){
+        //Converts the randomized data to a Standard Normal Distribution
+        //the random data is close enough to a Normal Distribution so i can just base the terrain on the Z score
+        float mean = 0;
+        float stdDev = 0;
+        int counter = 0;
+        float max = -9999;
+        float min = 9999;
+        float maxZ = -9999;
+        float minZ = 9999;
+        Array<Float> fl = new Array<Float>();
+        for (int Y = 0; Y < map.length; Y++) {              //gets the mean
+            for (int X = 0; X < map[0].length; X++) {
+                mean += map[Y][X];
+                counter++;
+                fl.add(map[Y][X]);
+            }
+        }
+        mean /= counter;                                   //calculates the mean from the total
+        for (Float f: fl){
+            stdDev += (f-mean) * (f-mean);
+            if (f > max) max = f;
+            else if (f < min && f != 0) min = f;
+        }
+        stdDev /= counter;                                  //gets variance
+        stdDev = (float)Math.sqrt(stdDev);                  //gets standard deviation
+
+        //convert the values to "Z" values
+        for (int Y = 0; Y < map.length; Y++) {
+            for (int X = 0; X < map[0].length; X++) {
+                map[Y][X] = (map[Y][X] - mean)/stdDev;      //converts the map[y][x] value to it's Z value
+                if (map[Y][X] > maxZ) maxZ = map[Y][X];     //gets the max and min of the z value
+                else if (map[Y][X] < minZ) minZ = map[Y][X];
+            }
+        }
+
+        System.out.println (stdDev);
+        System.out.println("min " + minZ + " max " + maxZ);
+        System.out.println (mean);                          //mean
+        fl.sort();
+        System.out.println (fl.get((fl.size-1)/2));         //median
+        return map;
+    }
+
+    /**
+     * Generates a map using the diamond square algorithm
+     * @param xSize     width of the map, must be 2^n + 1
+     * @param ySize     height of the map, must be 2^n + 1
+     * @return          a 2d array of floats representing the map
+     */
+    private float[][] diamondSquare(int xSize, int ySize, float variation){
         float [][] map = new float[ySize][xSize];
-        map[0][0]               = inRange(0, 20, 30);
+        /*map[0][0]               = inRange(0, 20, 30);
         map[0][xSize-1]         = inRange(0, 20, 30);
         map[ySize-1][0]         = inRange(0, 20, 30);
         map[ySize-1][xSize-1]   = inRange(0, 20, 30);
@@ -114,10 +167,15 @@ public class Random {
         map[ySize/2][0]         = inRange(0, 20, 30);
         map[ySize/2][xSize/2]   = inRange(0, 20, 30);
         map[ySize/2][xSize-1]   = inRange(0, 20, 30);
-        map[ySize-1][xSize/2]   = inRange(0, 20, 30);
+        map[ySize-1][xSize/2]   = inRange(0, 20, 30);*/
+        for (int y = 0; y <= ySize/32; y++){     //splits it up into 32x32 chunks
+            for (int x = 0; x <= xSize/32; x++){
+                System.out.println (x + " " + y + " generate");
+                map[y*32][x*32] = inRange(0, 20, 30);
+            }
+        }
 
         int step = 5;
-        float variation = 2f;
         int size = xSize/2;
         int hSize = size/2;
 
@@ -127,10 +185,9 @@ public class Random {
         int y1 = ySize/2;
         int x, y;
         float a,b,c,d;
-        float ln = 4;
         Array<Float> al = new Array<Float>(4);
         //http://www.javaworld.com/article/2076745/learn-java/3d-graphic-java--render-fractal-landscapes.html
-        while (step >= 1){
+        while (step > 0){
             //diamond step
             System.out.println("Diamond");
             while (true) {
@@ -142,7 +199,6 @@ public class Random {
                 x = x0 + hSize;
                 map[y][x] = Math.round((a + b + c + d) / 4f);
                 map[y][x] += inRange((int)c,map[y][x]/10f*3 , map[y][x]/10f*5) * variation * next(0);
-                ln = map[y0+hSize][x0+hSize];
                 x0 += size;
                 x1 += size;
                 if (x1 >= xSize){
@@ -190,7 +246,7 @@ public class Random {
                         }
                     }
                     x = x0 - hSize;
-                    map[y0][x] = c / b + (float) (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                    map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
                 }
                 // ==================== right point =====================
                 if (map[y0][x0+hSize] == 0) {
@@ -208,7 +264,7 @@ public class Random {
                         }
                     }
                     x = x0 + hSize;
-                    map[y0][x] = c / b + (float) (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                    map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
                 }
                 // ==================== top point =======================
                 if (map[y0+hSize][x0] == 0) {
@@ -226,7 +282,7 @@ public class Random {
                         }
                     }
                     y = y0 + hSize;
-                    map[y][x0] = c / b + (float) (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
                 }
                 // =================== bottom point =====================
                 if (map[y0-hSize][x0] == 0) {
@@ -244,8 +300,7 @@ public class Random {
                         }
                     }
                     y = y0 - hSize;
-                    map[y][x0] = c / b + (float) (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
-                    ln = map[y0-hSize][x0];
+                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
                 }
 
                 x0 += size;
@@ -279,80 +334,21 @@ public class Random {
             System.out.println("________________");
             System.out.println(variation);
         }
-
-        //Converts the randomized data to a Standard Normal Distribution
-        //the random data is close enough to a Normal Distribution so i can just base the terrain on the Z score
-        float mean = 0;
-        float stdDev = 0;
-        int counter = 0;
-        float max = -9999;
-        float min = 9999;
-        float maxZ = -9999;
-        float minZ = 9999;
-        Array<Float> fl = new Array<Float>();
-        for (int Y = 0; Y < map.length; Y++) {              //gets the mean
-            for (int X = 0; X < map[0].length; X++) {
-                mean += map[Y][X];
-                counter++;
-                fl.add(map[Y][X]);
-            }
-        }
-        mean /= counter;                                   //calculates the mean from the total
-        for (Float f: fl){
-            stdDev += (f-mean) * (f-mean);
-            if (f > max) max = f;
-            else if (f < min && f != 0) min = f;
-        }
-        stdDev /= counter;                                  //gets variance
-        stdDev = (float)Math.sqrt(stdDev);                  //gets standard deviation
-
-        //convert the values to "Z" values
-        for (int Y = 0; Y < map.length; Y++) {
-            for (int X = 0; X < map[0].length; X++) {
-                map[Y][X] = (map[Y][X] - mean)/stdDev;      //converts the map[y][x] value to it's Z value
-                if (map[Y][X] > maxZ) maxZ = map[Y][X];     //gets the max and min of the z value
-                else if (map[Y][X] < minZ) minZ = map[Y][X];
-            }
-        }
-
-        System.out.println("min " + minZ + " max " + maxZ);
-        System.out.println (mean);                          //mean
-        fl.sort();
-        System.out.println (fl.get((fl.size-1)/2));         //median
-
-        int[][] finalMap = new int[ySize][xSize];
-        for (int Y = 0; Y < map.length; Y++){
-            for (int X = 0; X < map[0].length; X++){
-                if (map[Y][X] < -0.2){
-                    finalMap[Y][X] = 1;     //deep ocean, light ocean is 2
-                }else if (map[Y][X] < 0){
-                    finalMap[Y][X] = 3;     //terrain 1
-                }else if (map[Y][X] < 0.75){
-                    finalMap[Y][X] = 4;     //terrain 2
-                }else if (map[Y][X] < 1.5){
-                    finalMap[Y][X] = 5;     //terrain 3
-                }else if (map[Y][X] < 2.25){
-                    finalMap[Y][X] = 6;     //terrain 4
-                }else if (map[Y][X] < 3){
-                    finalMap[Y][X] = 7;     //terrain 5
-                }else{
-                    finalMap[Y][X] = 9;     //mountains
-                }
-            }
-        }
-        finalMap = smoothLand(finalMap);    //smooths out the land
-        finalMap = smoothLand(finalMap);
-        finalMap = moisture(finalMap);
-        return finalMap;
+        return map;
     }
 
-    private int[][] moisture(int[][] map){
+    /**
+     * Fixes the map, so instead of being patchy this method returns a map with solid landmasses <br>
+     *     Only generates the land, sea and shore. The moisture method generates the other terrain <br>
+     *     uses Landmass Codes; 1 is deep ocean, 2 is light ocean, 3 is land, 8 is hill, 9 is mountain
+     * @param map   map to be fixed using Landmass Codes
+     * @return      solid landmass map using Landmass Codes
+     */
+    private int[][] fixLand(int[][] map){
+        map = smoothLand(map);      //smooths out the land, gets rid of some patchy tiles
+        map = smoothLand(map);
         Array<Point> adj;
-        for (int i = 6; i >= 3; i--){
-            smooth(map, i, 3);
-        }
-        smooth(map, 1, 2);
-        smooth(map, 1, 2);
+        smooth(map, 1, 2);          //helps smooth out the deep ocean tiles
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
                 if (map[y][x] == 1){                //if its deep ocean
@@ -370,14 +366,7 @@ public class Random {
                 }
             }
         }
-        deleteSingleHex(map, 1);
-        for (int i = 3; i <= 8; i++){
-            deleteSingleHex(map, i);
-        }
-        for (int i = 3; i <= 8; i++){
-            deleteSingleHex(map, i);
-        }
-        deleteSingleHex(map, 1);
+        deleteSingleHex(map, 1);    //deletes the single deep ocean tiles leftover
         return map;
     }
 
