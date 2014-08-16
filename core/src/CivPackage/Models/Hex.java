@@ -29,10 +29,11 @@ public class Hex extends Actor{
 
     private Texture texture;
     private static Texture[] textures = {new Texture("core/assets/Hex/Hex0.png")
-            , new Texture("core/assets/Hex/OceanDeep.png"), new Texture("core/assets/Hex/OceanLight.png")
+            , new Texture("core/assets/Hex/Ocean.png"), new Texture("core/assets/Hex/OceanLight.png")
             , new Texture("core/assets/Hex/Plains.png"), new Texture("core/assets/Hex/PlainsHill.png"), new Texture("core/assets/Hex/PlainsMountain.png")
             , new Texture("core/assets/Hex/Grass.png"),  new Texture("core/assets/Hex/GrassHill.png"),  new Texture("core/assets/Hex/GrassMountain.png")
-            , new Texture("core/assets/Hex/Desert.png"), new Texture("core/assets/Hex/DesertHill.png"), new Texture("core/assets/Hex/DesertMountain.png")};
+            , new Texture("core/assets/Hex/Desert.png"), new Texture("core/assets/Hex/DesertHill.png"), new Texture("core/assets/Hex/DesertMountain.png")
+            , new Texture("core/assets/Hex/Hex7.png")};
 
     public static final Texture SELECTED = new Texture("core/assets/Hex/Selected.png");
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Hex/Path.png"));
@@ -81,6 +82,15 @@ public class Hex extends Actor{
                 break;
             case 39:
                 texture = textures[11];
+                break;
+            case 40:
+                texture = textures[12];
+                break;
+            case 48:
+                texture = textures[12];
+                break;
+            case 49:
+                texture = textures[12];
                 break;
         }
 
