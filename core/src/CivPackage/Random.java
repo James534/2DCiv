@@ -76,7 +76,7 @@ public class Random {
                 map[y][x] *= y/(map.length/9) * next(0);
             }
             for (int y = map.length - map.length/9; y < map.length; y++){
-                map[y][x] *= (y-map.length)/(map.length/9) * next(0);
+                map[y][x] *= (map.length-y)/(map.length/9) * next(0);
             }
         }
 
@@ -111,8 +111,10 @@ public class Random {
         50-59 is snow               x9 is mountain
         60+ are wonders
          */
+        //http://forums.steampowered.com/forums/showthread.php?t=1580535
         //http://pcg.wikidot.com/pcg-algorithm:map-generation
         //http://pcg.wikidot.com/pcg-algorithm:fractal-river-basins   generate rivers
+        //https://aftbit.com/cell-noise-2/ cell noise, different method for generating noise
 
         /*--------------------------------------- Generating noise -----------------------------------------*/
         float[][] climateMap = diamondSquare(map[0].length, map.length, 8, 8f, false);
@@ -135,45 +137,84 @@ public class Random {
         }
         /* --------------------------------- Converting noise to terrain ----------------------------------*/
         climateMap = zScores(climateMap);   //convert it to z score again
-        //converts it to an int array to smooth; have to convert it to semi-Landmass Codes, since the smooth method was written using Landmass Codes
         int[][] intClimateMap = new int[map.length][map[0].length];
+        int middle = map.length/2;
+        float temp;
+
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
+                temp = Math.abs(middle - y);
+                temp /= middle;
                 if (map[y][x] > 2){                         //if its not an ocean tile, do stuff to it
-                    if (climateMap[y][x] < -0.75){
-                        intClimateMap[y][x] = 4;    //4 is plains(10)
-                    }else if (climateMap[y][x] < 0.75) {
-                        intClimateMap[y][x] = 5;    //5 is grassland(20)
+                    //whittaker diagram; http://pcg.wikidot.com/pcg-algorithm:whittaker-diagram
+                    //adaptation http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
+                    //using y as temperature, hottest in the middle of the map, and the z scores as precipitation
+
+                    if (temp < .25){
+                        if (climateMap[y][x] < -0.25) {
+                            intClimateMap[y][x] = 30;       //high temp, low rain, desert
+                        }else if (climateMap[y][x] < 0.25){
+                            intClimateMap[y][x] = 10;       //high temp, med rain, plains/grasslands
+                        }else{
+                            intClimateMap[y][x] = 20;       //high temp, high rain, forest/jungle, but grasslands for now
+                        }
+                    }else if (temp < 0.45){
+                        if (climateMap[y][x] < -0.25){
+                            intClimateMap[y][x] = 20;       //med temp, low rain, grassland
+                        }else if (climateMap[y][x] < 0.25){
+                            intClimateMap[y][x] = 20;       //med temp, med rain, grassland/forest
+                        }else{
+                            intClimateMap[y][x] = 10;
+                        }
+                    }else if (temp < 0.7){
+                        if (climateMap[y][x] < -0.25){
+                            intClimateMap[y][x] = 30;       //low temp, low rain, desert
+                        }else if (climateMap[y][x] < 0.25){
+                            intClimateMap[y][x] = 20;       //low temp, med rain, forest
+                        }else{
+                            intClimateMap[y][x] = 10;       //low temp, high rain, forest
+                        }
                     }else{
-                        intClimateMap[y][x] = 6;    //6 is desert(30)
+                        if (climateMap[y][x] < .5) {
+                            intClimateMap[y][x] = 40;       //freezing temp, low-mid rain, tundra
+                        }else{
+                            intClimateMap[y][x] = 0;       //freezing temp, high rain, snow
+                        }
                     }
+
                     if (map[y][x] == 3){
                         map[y][x] = 0;
                     }
                 }else{
-                    intClimateMap[y][x] = -1;                  //if it is an ocean tile, ignore it
+                    if (temp > 0.8) {
+                        if (map[y][x] == 1) {
+                            if (next(0) > 0.5) {
+                                intClimateMap[y][x] = -2;   //ice
+                            }
+                        }
+                    }else {
+                        intClimateMap[y][x] = -1;                  //if it is an ocean tile, ignore it
+                    }
                 }
             }
         }
 
+        Array<Integer> coldTerrain = new Array<Integer>();
+        coldTerrain.add(40);
         //smooths the int array
-        intClimateMap = smooth(intClimateMap, 5, 2);
-        intClimateMap = smooth(intClimateMap, 4, 2);
-        intClimateMap = smooth(intClimateMap, 6, 2);
+        intClimateMap = smooth(intClimateMap, 10, 2, coldTerrain);
+        intClimateMap = smooth(intClimateMap, 20, 2, coldTerrain);
+        intClimateMap = smooth(intClimateMap, 30, 2, coldTerrain);
 
 
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++){
-                switch (intClimateMap[y][x]) {
-                    case 4:
-                        map[y][x] += 10;                    //plains
-                        break;
-                    case 5:
-                        map[y][x] += 20;                    //grasslands
-                        break;
-                    case 6:
-                        map[y][x] += 30;                    //desert
-                        break;
+                if (intClimateMap[y][x] != -1) {
+                    if (intClimateMap[y][x] == -2){     //ghetto solution for now for ice
+                        map[y][x] = 0;
+                    }else {
+                        map[y][x] += intClimateMap[y][x];
+                    }
                 }
             }
         }
@@ -212,18 +253,21 @@ public class Random {
         }
         stdDev /= counter;                                  //gets variance
         stdDev = (float)Math.sqrt(stdDev);                  //gets standard deviation
-
         //convert the values to "Z" values
         for (int Y = 0; Y < map.length; Y++) {
             for (int X = 0; X < map[0].length; X++) {
                 map[Y][X] = (map[Y][X] - mean)/stdDev;      //converts the map[y][x] value to it's Z value
-                if (map[Y][X] > maxZ) maxZ = map[Y][X];     //gets the max and min of the z value
-                else if (map[Y][X] < minZ) minZ = map[Y][X];
+                if (map[Y][X] > 5){                         //Locks the max and min z values at +-5
+                    map[Y][X] = 5;
+                }
+                else if (map[Y][X] < -5){
+                    map[Y][X] = -5;
+                }
             }
         }
 
         System.out.println (stdDev);
-        System.out.println("min " + minZ + " max " + maxZ);
+        System.out.println("min " + min + " max " + max);
         System.out.println (mean);                          //mean
         fl.sort();
         System.out.println (fl.get((fl.size-1)/2));         //median
@@ -324,74 +368,74 @@ public class Random {
             //square step
             while (true){
                 // ==================== left point ======================
-                al.clear();
-                a = (valueAt(map, x0, y0));   //current point, cant be out of bounds
-                al.add(valueAt(map, x0 - hSize, y0 - hSize));
-                al.add(valueAt(map, x0 - hSize, y0 + hSize));
-                al.add(valueAt(map, x0 - size, y0));
-                //using these variables instead of new ones to save memory
-                b = al.size+1;
-                c = a;
-                for (Float f : al) {
-                    if (f != -1) {   //checks if they are out of bounds
-                        c += f;
-                    } else {
-                        b--;
+                    al.clear();
+                    a = (valueAt(map, x0, y0));   //current point, cant be out of bounds
+                    al.add(valueAt(map, x0 - hSize, y0 - hSize));
+                    al.add(valueAt(map, x0 - hSize, y0 + hSize));
+                    al.add(valueAt(map, x0 - size, y0));
+                    //using these variables instead of new ones to save memory
+                    b = al.size+1;
+                    c = a;
+                    for (Float f : al) {
+                        if (f != -1) {   //checks if they are out of bounds
+                            c += f;
+                        } else {
+                            b--;
+                        }
                     }
-                }
-                x = x0 - hSize;
-                map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                    x = x0 - hSize;
+                    map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
 
                 // ==================== right point =====================
-                al.clear();
-                al.add(valueAt(map, x0 + hSize, y0 - hSize));
-                al.add(valueAt(map, x0 + hSize, y0 + hSize));
-                al.add(valueAt(map, x0 + size, y0));
-                b = al.size+1;
-                c = a;
-                for (Float f : al) {
-                    if (f != -1) {
-                        c += f;
-                    } else {
-                        b--;
+                    al.clear();
+                    al.add(valueAt(map, x0 + hSize, y0 - hSize));
+                    al.add(valueAt(map, x0 + hSize, y0 + hSize));
+                    al.add(valueAt(map, x0 + size, y0));
+                    b = al.size+1;
+                    c = a;
+                    for (Float f : al) {
+                        if (f != -1) {
+                            c += f;
+                        } else {
+                            b--;
+                        }
                     }
-                }
-                x = x0 + hSize;
-                map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                    x = x0 + hSize;
+                    map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
 
                 // ==================== top point =======================
-                al.clear();
-                al.add(valueAt(map, x0 + hSize, y0 + hSize));
-                al.add(valueAt(map, x0 - hSize, y0 + hSize));
-                al.add(valueAt(map, x0, y0 + size));
-                b = al.size+1;
-                c = a;
-                for (Float f : al) {
-                    if (f != -1) {
-                        c += f;
-                    } else {
-                        b--;
+                    al.clear();
+                    al.add(valueAt(map, x0 + hSize, y0 + hSize));
+                    al.add(valueAt(map, x0 - hSize, y0 + hSize));
+                    al.add(valueAt(map, x0, y0 + size));
+                    b = al.size+1;
+                    c = a;
+                    for (Float f : al) {
+                        if (f != -1) {
+                            c += f;
+                        } else {
+                            b--;
+                        }
                     }
-                }
-                y = y0 + hSize;
-                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+                    y = y0 + hSize;
+                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
 
                 // =================== bottom point =====================
-                al.clear();
-                al.add(valueAt(map, x0 + hSize, y0 - hSize));
-                al.add(valueAt(map, x0 - hSize, y0 - hSize));
-                al.add(valueAt(map, x0, y0 - size));
-                b = al.size+1;
-                c = a;
-                for (Float f : al) {
-                    if (f != -1) {
-                        c += f;
-                    } else {
-                        b--;
+                    al.clear();
+                    al.add(valueAt(map, x0 + hSize, y0 - hSize));
+                    al.add(valueAt(map, x0 - hSize, y0 - hSize));
+                    al.add(valueAt(map, x0, y0 - size));
+                    b = al.size+1;
+                    c = a;
+                    for (Float f : al) {
+                        if (f != -1) {
+                            c += f;
+                        } else {
+                            b--;
+                        }
                     }
-                }
-                y = y0 - hSize;
-                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+                    y = y0 - hSize;
+                    map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
 
 
                 x0 += size;
@@ -439,7 +483,12 @@ public class Random {
         map = smoothLand(map);      //smooths out the land, gets rid of some patchy tiles
         map = smoothLand(map);
         Array<Point> adj;
-        smooth(map, 1, 2);          //helps smooth out the deep ocean tiles
+
+        Array<Integer> ocean = new Array<Integer>();    //a list of the ocean tiles, for the smooth method to check if to ignore or not
+        ocean.add (1); ocean.add (2);
+        smooth(map, 1, 2, ocean);                       //helps smooth out the deep ocean tiles
+
+        /** Generates coastal tiles for ocean tiles that are touching land*/
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
                 if (map[y][x] == 1){                //if its deep ocean
@@ -506,26 +555,28 @@ public class Random {
      * @param threshold how many nearby tiles of a different terrain until this terrain changes
      * @return
      */
-    private int[][] smooth (int[][] map, int terrain, int threshold){
+    private int[][] smooth (int[][] map, int terrain, int threshold, Array<Integer> ignore){
         int valueAt;
-        int[] terrains = new int[10];     //the terrain beside this one, based on how many terrains there are
+        Array<Integer> terrains = new Array<Integer>();     //the terrain beside this one, based on how many terrains there are
 
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++) {
                 if (map[y][x] == terrain) {                         //only does these stuff if its on the terrain tile i want to smooth out
-                    for (int i = 0; i < terrains.length; i++) {     //resets the array
-                        terrains[i] = 0;
-                    }
+                    terrains.clear();
+                    //see what the neighbouring tiles are
                     for (Point p: getNeighbours(x, y)){
                         valueAt = valueAt(map, p.x, p.y);
-                        if (valueAt != -1 && valueAt > 2){          //if its not invalid and if its not an ocean tile
-                            terrains[valueAt]++;
+                        if (valueAt != -1 && !ignore.contains(valueAt, true)){          //if its not invalid and if its not an ocean tile
+                            terrains.add(valueAt);
                         }
                     }
-                    for (int i = 0; i < terrains.length; i++){
-                        if (terrains[i] > threshold) {
-                            map[y][x] = i;
-                        }
+                    terrains.sort();
+                    for (int i = 0; i < terrains.size; i++){
+                        try {
+                            if (terrains.get(i + threshold) == terrains.get(i)) {
+                                map[y][x] = terrains.get(i);
+                            }
+                        }catch (IndexOutOfBoundsException e){}
                     }
                 }
             }
@@ -534,9 +585,9 @@ public class Random {
     }
 
     /**
-     * Used to smooth out the map
-     * @param map; an array of ints to be smoothed
-     * @return
+     * Used to smooth out the map with only land and water
+     * @param map; the map featuring only land and water
+     * @return      smoothed out land
      */
     private int[][] smoothLand(int[][] map){
         int counter, terrain, max;
@@ -545,14 +596,14 @@ public class Random {
             for (int x = 0; x < map[0].length; x++){
                 counter = 0;
                 max = 4;
-                if (map[y][x] == 1){    //sees if its water or land, and sets terrain accordingly
+                if (map[y][x] == 1){    //sees if its water or land, and sets terrain to be the opposite
                     terrain = 4;
                 }else{
                     terrain = 1;
                 }
                 adj = getNeighbours(x, y);
                 for (Point p: adj){
-                    if (valueAt(map, p.x, p.y) == terrain){
+                    if (valueAt(map, p.x, p.y) == terrain){     //if the neighbours are the same as the opposite terrain
                         counter++;
                     }
                     if (valueAt(map, p.x, p.y) == -1){
