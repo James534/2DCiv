@@ -10,7 +10,7 @@ public class Warrior extends Entity{
 
     public Warrior(Vector2 pos, int id){
         super(pos, id, 20, 2);
-        this.texture = new Texture("core/assets/Warrior.png");
+        this.texture = new Texture("assets/Warrior.png");
         this.type = 1;
         this.range = 1;
     }

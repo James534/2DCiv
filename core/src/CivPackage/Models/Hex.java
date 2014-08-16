@@ -28,14 +28,14 @@ public class Hex extends Actor{
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static Texture[] textures = {new Texture("core/assets/Hex/Hex0.png")
-            , new Texture("core/assets/Hex/OceanDeep.png"), new Texture("core/assets/Hex/OceanLight.png")
-            , new Texture("core/assets/Hex/Plains.png"), new Texture("core/assets/Hex/PlainsHill.png"), new Texture("core/assets/Hex/PlainsMountain.png")
-            , new Texture("core/assets/Hex/Grass.png"),  new Texture("core/assets/Hex/GrassHill.png"),  new Texture("core/assets/Hex/GrassMountain.png")
-            , new Texture("core/assets/Hex/Desert.png"), new Texture("core/assets/Hex/DesertHill.png"), new Texture("core/assets/Hex/DesertMountain.png")};
+    private static Texture[] textures = {new Texture("assets/Hex/Hex0.png")
+            , new Texture("assets/Hex/OceanDeep.png"), new Texture("assets/Hex/OceanLight.png")
+            , new Texture("assets/Hex/Plains.png"), new Texture("assets/Hex/PlainsHill.png"), new Texture("assets/Hex/PlainsMountain.png")
+            , new Texture("assets/Hex/Grass.png"),  new Texture("assets/Hex/GrassHill.png"),  new Texture("assets/Hex/GrassMountain.png")
+            , new Texture("assets/Hex/Desert.png"), new Texture("assets/Hex/DesertHill.png"), new Texture("assets/Hex/DesertMountain.png")};
 
-    public static final Texture SELECTED = new Texture("core/assets/Hex/Selected.png");
-    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("core/assets/Hex/Path.png"));
+    public static final Texture SELECTED = new Texture("assets/Hex/Selected.png");
+    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("assets/Hex/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;

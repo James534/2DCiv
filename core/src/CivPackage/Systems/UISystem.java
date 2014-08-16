@@ -44,7 +44,7 @@ public class UISystem {
         path = new Array<Hex>();
         turns = new Array<Integer>();
 
-        skin = new Skin(Gdx.files.internal("core/assets/uiskin.json"));
+        skin = new Skin(Gdx.files.internal("assets/uiskin.json"));
         table = new Table();    //add skin
         table.setPosition(50,650);
         font = new BitmapFont();
