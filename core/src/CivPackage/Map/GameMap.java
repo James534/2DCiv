@@ -17,11 +17,11 @@ public class GameMap {
         this.xSize = xSize;
         this.ySize = ySize;
 
-        //Random r = new Random(1047155);
-        TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
-        //int[][] heightMap = r.generateTerrain(xSize,ySize);
+        Random r = new Random(1047155);
+        //TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
+        int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);
-        int[][] heightMap = tgs.generate(xSize, ySize);
+        //int[][] heightMap = tgs.generate(xSize, ySize);
 
         map = new Hex[ySize][xSize];
         for (int y = 0; y < map.length; y++){

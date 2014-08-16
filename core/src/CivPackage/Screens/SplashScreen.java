@@ -16,7 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
  */
 public class SplashScreen implements Screen{
 
-    private Texture texture = new Texture(Gdx.files.internal("assets/Splash.png"));
+    private Texture texture = new Texture(Gdx.files.internal(GameProject.fileName + "Splash.png"));
     private Image splashImg = new Image(texture);
     private Stage stage = new Stage();
 

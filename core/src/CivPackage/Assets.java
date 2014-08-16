@@ -14,16 +14,16 @@ public class Assets {
     public static AssetManager manager = new AssetManager();
     public static Skin skin;
 
-    public static final Pixmap[] num = {new Pixmap(Gdx.files.internal("assets/Text/0.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/1.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/2.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/3.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/4.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/5.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/6.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/7.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/8.png")),
-            new Pixmap(Gdx.files.internal("assets/Text/9.png"))};
+    public static final Pixmap[] num = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/0.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/1.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/2.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/3.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/4.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/5.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/6.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/7.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/8.png")),
+            new Pixmap(Gdx.files.internal(GameProject.fileName + "Text/9.png"))};
 
 
     public static void queueLoading() {

@@ -1,5 +1,6 @@
 package CivPackage.Models;
 
+import CivPackage.GameProject;
 import CivPackage.MathCalc;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -28,14 +29,14 @@ public class Hex extends Actor{
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static Texture[] textures = {new Texture("assets/Hex/Hex0.png")
-            , new Texture("assets/Hex/OceanDeep.png"), new Texture("assets/Hex/OceanLight.png")
-            , new Texture("assets/Hex/Plains.png"), new Texture("assets/Hex/PlainsHill.png"), new Texture("assets/Hex/PlainsMountain.png")
-            , new Texture("assets/Hex/Grass.png"),  new Texture("assets/Hex/GrassHill.png"),  new Texture("assets/Hex/GrassMountain.png")
-            , new Texture("assets/Hex/Desert.png"), new Texture("assets/Hex/DesertHill.png"), new Texture("assets/Hex/DesertMountain.png")};
+    private static Texture[] textures = {new Texture(GameProject.fileName + "Hex/Hex0.png")
+            , new Texture(GameProject.fileName + "Hex/OceanDeep.png"), new Texture(GameProject.fileName + "Hex/OceanLight.png")
+            , new Texture(GameProject.fileName + "Hex/Plains.png"), new Texture(GameProject.fileName + "Hex/PlainsHill.png"), new Texture(GameProject.fileName + "Hex/PlainsMountain.png")
+            , new Texture(GameProject.fileName + "Hex/Grass.png"),  new Texture(GameProject.fileName + "Hex/GrassHill.png"),  new Texture(GameProject.fileName + "Hex/GrassMountain.png")
+            , new Texture(GameProject.fileName + "Hex/Desert.png"), new Texture(GameProject.fileName + "Hex/DesertHill.png"), new Texture(GameProject.fileName + "Hex/DesertMountain.png")};
 
-    public static final Texture SELECTED = new Texture("assets/Hex/Selected.png");
-    public static final Pixmap PATH = new Pixmap(Gdx.files.internal("assets/Hex/Path.png"));
+    public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/Selected.png");
+    public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 30;

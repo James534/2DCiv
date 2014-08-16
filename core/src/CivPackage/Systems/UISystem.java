@@ -1,5 +1,6 @@
 package CivPackage.Systems;
 
+import CivPackage.GameProject;
 import CivPackage.Map.GameMap;
 import CivPackage.Models.Hex;
 import com.badlogic.gdx.Gdx;
@@ -44,7 +45,7 @@ public class UISystem {
         path = new Array<Hex>();
         turns = new Array<Integer>();
 
-        skin = new Skin(Gdx.files.internal("assets/uiskin.json"));
+        skin = new Skin(Gdx.files.internal(GameProject.fileName + "uiskin.json"));
         table = new Table();    //add skin
         table.setPosition(50,650);
         font = new BitmapFont();
