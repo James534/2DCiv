@@ -1,5 +1,6 @@
 package CivPackage;
 
+import CivPackage.Models.Hex;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -13,6 +14,31 @@ public class Random {
         this.seed = seed;
         random = new java.util.Random(seed);
     }
+
+    Array<Point> riverPoints;
+
+    /**
+     * Generates a hex map
+     * @param xSize
+     * @param ySize
+     * @return
+     */
+    public Hex[][] generateHexMap(int xSize, int ySize){
+        Hex[][] map = new Hex[xSize][ySize];
+        int[][] intMap = generateTerrain(xSize, ySize);         //the terrain map
+        for (int y = 0; y < ySize; y++){
+            for (int x = 0; x < xSize; x++){
+                map[y][x] = new Hex(intMap[y][x], x, y);
+            }
+        }
+        //adding rivers
+        for (Point p: riverPoints){
+            map[p.y][p.x].addRiver(p.data);
+        }
+        //adding resources
+        return map;
+    }
+
 
     /**
      * Generates the terrain using diamond-square
@@ -73,10 +99,10 @@ public class Random {
 
         for (int x = 0; x < map[0].length; x++){
             for (int y = 0; y < map.length/9; y++) {
-                map[y][x] *= y/(map.length/9) * next(0);
+                map[y][x] *= y/(map.length/9) * next();
             }
             for (int y = map.length - map.length/9; y < map.length; y++){
-                map[y][x] *= (map.length-y)/(map.length/9) * next(0);
+                map[y][x] *= (map.length-y)/(map.length/9) * next();
             }
         }
 
@@ -142,7 +168,7 @@ public class Random {
         float temp;
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
-                temp = Math.abs(middle - y);
+                temp = Math.abs(middle - y);                //how far away this tile is from the middle
                 temp /= middle;
                 if (map[y][x] > 2){                         //if its not an ocean tile, do stuff to it
                     //whittaker diagram; http://pcg.wikidot.com/pcg-algorithm:whittaker-diagram
@@ -177,7 +203,7 @@ public class Random {
                         if (climateMap[y][x] < .5) {
                             intClimateMap[y][x] = 40;       //freezing temp, low-mid rain, tundra
                         }else{
-                            intClimateMap[y][x] = 0;       //freezing temp, high rain, snow
+                            intClimateMap[y][x] = 0;        //freezing temp, high rain, snow
                         }
                     }
                     if (map[y][x] == 3){
@@ -186,7 +212,9 @@ public class Random {
                 }else{
                     if (temp > 0.8) {
                         if (map[y][x] == 1) {
-                            if (next(0) > 0.5) {
+                            if (temp > 0.9){                //edges are always ice
+                                intClimateMap[y][x] = -2;
+                            }else if (next() > 0.2) {       //closer to the land, less ice
                                 intClimateMap[y][x] = -2;   //ice
                             }
                         }
@@ -198,19 +226,223 @@ public class Random {
         }
         Array<Integer> coldTerrain = new Array<Integer>();
         coldTerrain.add(40);
+        coldTerrain.add(0);
+        coldTerrain.add(-2);
         //smooths the int array
         intClimateMap = smooth(intClimateMap, 10, 2, coldTerrain);
         intClimateMap = smooth(intClimateMap, 20, 2, coldTerrain);
         intClimateMap = smooth(intClimateMap, 30, 2, coldTerrain);
 
+        /* --------------------------- Resources and additional terrain ------------------------ */
+        Array<Point> lakes = new Array<Point>();
+        //checks for already existing lakes
+        for (int y = 0; y < intClimateMap.length; y++){
+            for (int x = 0; x < intClimateMap[0].length; x++){
+                if (map[y][x] == 2) {
+                    lakes:{
+                        for (Point p : getPointInRange(x, y, 1)) {
+                            if (map[p.y][p.x] == 2 || map[p.y][p.x] == 1){
+                                break lakes;
+                            }
+                        }
+                        lakes.add(new Point (x, y));
+                        map[y][x] = 1;
+                        System.out.println ("Already existing lake at " + x + " " + y);
+                    }
+                }
+            }
+        }
+        //adds new lakes
+        int numLakes = 3;
+        int tempX, tempY;
+        while (numLakes > 0){
+            tempX = Math.round(nextPosInt(map[0].length-1));
+            tempY = Math.round(nextPosInt(map.length-1));
+            if (intClimateMap[tempY][tempX] > 0){
+                addLake:{
+                    for (Point p : getNeighbours(tempX, tempY)) {
+                        if (intClimateMap[p.y][p.x] < 0) {       //checks the neighbours and see if the are water tiles
+                            break addLake;
+                        }
+                    }
+                    for (Point p: lakes) {
+                        if (MathCalc.distanceBetween(tempX, tempY, p.x, p.y) < 13){
+                            break addLake;                      //dont add a lake if there is already a lake less than 13 hexes from this one
+                        }
+                    }
+                    intClimateMap[tempY][tempX] = 1;
+                    map[tempY][tempX] = 0;
+                    lakes.add(new Point (tempX, tempY));
+                    System.out.println("Added lake to " + tempX + " " + tempY);
+                    numLakes--;
+                }
+            }
+        }
 
-        for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map[0].length; x++){
-                if (intClimateMap[y][x] != -1) {
-                    if (intClimateMap[y][x] == -2){     //ghetto solution for now for ice
-                        map[y][x] = 0;
+        //adds rivers
+        int riverLength;
+        int numRivers = 8;
+        riverPoints = new Array<Point>();
+        int direction;
+        String data;
+        String[] dirString = {"100000", "010000", "001000", "000100", "000010", "000001"};  //directional strings, for creating river within the hex
+        int x, y;               //x and y of the "base" hex
+        int x0 = 0, y0 = 0;     //x and y of the first point
+        int x1 = 0, y1 = 0;     //x and y of the 2nd point
+        int d0 = 0, d1 = 0;     //string array locations of the directions for the first and 2nd point
+        boolean m0, m1;         //booleans used to make new Points, they are turned false when there is already a point in the array
+        boolean alternate;      //used to keep directions relatively straight, alternates between first and 2nd point
+        for (Point p: lakes){   //adds a river from each lake
+            riverLength = Math.round(inRange(8, 16));    //generate how long the river will be
+            System.out.println (riverLength);
+            direction = nextPosInt(6);                  //figure out the initial direction
+            x = p.x;
+            y = p.y;
+            alternate = true;
+            for (int i = 0; i < riverLength; i++){
+                switch (direction){     //there's 2 hexes touching one side of the river, this switch figures out the 2 hexes
+                    case 0:     //top
+                        x0 = x-1 +y%2;
+                        y0 = y+1;
+                        d0 = 1;
+                        x1 = x + y%2;
+                        y1 = y+1;
+                        d1 = 4;
+                        break;
+                    case 1:     //top right
+                        x0 = x +y%2;
+                        y0 = y+1;
+                        d0 = 2;
+                        x1 = x+1;
+                        y1 = y;
+                        d1 = 5;
+                        break;
+                    case 2:     //bottom right
+                        x0 = x+1;
+                        y0 = y;
+                        d0 = 3;
+                        x1 = x +y%2;
+                        y1 = y-1;
+                        d1 = 0;
+                        break;
+                    case 3:     //bottom
+                        x0 = x + y%2;
+                        y0 = y-1;
+                        d0 = 4;
+                        x1 = x-1 +y%2;
+                        y1 = y-1;
+                        d1 = 1;
+                        break;
+                    case 4:     //bottom left
+                        x0 = x-1 +y%2;
+                        y0 = y-1;
+                        d0 = 5;
+                        x1 = x-1;
+                        y1 = y;
+                        d1 = 2;
+                        break;
+                    case 5:     //top left
+                        x0 = x-1;
+                        y0 = y;
+                        d0 = 0;
+                        x1 = x-1 +y%2;
+                        y1 = y+1;
+                        d1 = 3;
+                        break;
+                }
+
+                //checks if any of the 2 tiles are water tiles, meaning that the river has reached the ocean
+                if (intClimateMap[y0][x0] < 10 && intClimateMap[y0][x0] != 0){
+                    break;
+                }else if (intClimateMap[y1][x1] < 10 && intClimateMap[y1][x1] != 0){
+                    break;
+                }
+
+                //checks if there is already a point on the new spots
+                m0 = true;      //resets these two
+                m1 = true;
+                for (Point rp: riverPoints){
+                    if (m0 && rp.x == x0 && rp.y == y0){  //if there is, add the data to it
+                        data = "";
+                        for (int n = 0; n < 6; n++){
+                            if (n == d0){
+                                data += '1';
+                            }else{
+                                data += rp.data.charAt(n);
+                            }
+                        }
+                        rp.data = data;
+                        m0 = false;
+                        if (!m1){break;}
+                    }
+                    if (m1 && rp.x == x1 && rp.y == y1){
+                        data = "";
+                        for (int n = 0; n < 6; n++){
+                            if (n == d1){
+                                data += '1';
+                            }else{
+                                data += rp.data.charAt(n);
+                            }
+                        }
+                        rp.data = data;
+                        m1 = false;
+                        if (!m0){break;}
+                    }
+                }
+
+                //if the 2 points don't already exist, add them to the array
+                if (m0){
+                    riverPoints.add(new Point(x0, y0, dirString[d0]));
+                }
+                if (m1){
+                    riverPoints.add(new Point(x1, y1, dirString[d1]));
+                }
+
+                if (alternate){                     //alternates between first and 2nd point, to keep the direction straight
+                    if (nextPosFloat() > 0.25) {    //75% of keeping in the same direction it is currently flowing through
+                        alternate = false;
+                    }else{
+                        alternate = true;
+                    }
+                    x = x1;
+                    y = y1;
+                    if (direction == 0){
+                        direction = 5;
+                    }else{
+                        direction --;
+                    }
+                }else{
+                    if (nextPosFloat() > 0.25) {
+                        alternate = true;
+                    }else{
+                        alternate = false;
+                    }
+                    x = x0;
+                    y = y0;
+                    if (direction == 5){
+                        direction = 0;
+                    }else{
+                        direction++;
+                    }
+                }
+            }
+            numRivers--;
+        }
+
+        //generate extra rivers if there needs to be more
+        while (numRivers > 0){
+            numRivers--;
+        }
+
+
+        //converges all the other maps back into one map
+        for (int Y = 0; Y < map.length; Y++){
+            for (int X = 0; X < map[0].length; X++){
+                if (intClimateMap[Y][X] != -1) {
+                    if (intClimateMap[Y][X] == -2){     //ghetto solution for now for ice
+                        map[Y][X] = 0;
                     }else {
-                        map[y][x] += intClimateMap[y][x];
+                        map[Y][X] += intClimateMap[Y][X];
                     }
                 }
             }
@@ -224,7 +456,7 @@ public class Random {
      * @param map   map to be converted to it's Z score
      * @return      Z score map, where 0 is average, negative is below average, and positive is above average
      */
-    private float[][] zScores(float[][] map){
+    public static float[][] zScores(float[][] map){
         //Converts the randomized data to a Standard Normal Distribution
         //the random data is close enough to a Normal Distribution so i can just base the terrain on the Z score
         float mean = 0;
@@ -232,8 +464,6 @@ public class Random {
         int counter = 0;
         float max = -9999;
         float min = 9999;
-        float maxZ = -9999;
-        float minZ = 9999;
         Array<Float> fl = new Array<Float>();
         for (int Y = 0; Y < map.length; Y++) {              //gets the mean
             for (int X = 0; X < map[0].length; X++) {
@@ -263,11 +493,11 @@ public class Random {
             }
         }
 
-        System.out.println (stdDev);
+        /*System.out.println (stdDev);
         System.out.println("min " + min + " max " + max);
-        System.out.println (mean);                          //mean
+        System.out.println (mean);*/                        //mean
         fl.sort();
-        System.out.println (fl.get((fl.size-1)/2));         //median
+        //System.out.println (fl.get((fl.size-1)/2));         //median
         return map;
     }
 
@@ -284,28 +514,28 @@ public class Random {
         }
         for (int y = 0; y <= ySize/size; y++){     //splits it up into 32x32 chunks
             for (int x = 0; x < xSize/size; x++){
-                map[y*size][x*size] = inRange(0, 20, 30);
+                map[y*size][x*size] = inRange(20, 30);
             }
         }
 
         if (needCenterSeed) {
             try {
-                map[ySize / 2][xSize / 2] = inRange(0, 40, 50);
-                map[ySize / 2 + size][xSize / 2] = inRange(0, 35, 40);
-                map[ySize / 2 - size][xSize / 2] = inRange(0, 35, 40);
-                map[ySize / 2][xSize / 2 + size] = inRange(0, 35, 40);
-                map[ySize / 2][xSize / 2 - size] = inRange(0, 35, 40);
+                map[ySize / 2][xSize / 2] = inRange(40, 50);
+                map[ySize / 2 + size][xSize / 2] = inRange(35, 40);
+                map[ySize / 2 - size][xSize / 2] = inRange(35, 40);
+                map[ySize / 2][xSize / 2 + size] = inRange(35, 40);
+                map[ySize / 2][xSize / 2 - size] = inRange(35, 40);
             } catch (ArrayIndexOutOfBoundsException e) {
             }
 
-            map[0][0] = inRange(0, 10, 20);
-            map[0][xSize / 2] = inRange(0, 10, 20);
-            map[0][xSize - 1] = inRange(0, 10, 20);
-            map[ySize / 2][0] = inRange(0, 10, 20);
-            map[ySize / 2][xSize - 1] = inRange(0, 10, 20);
-            map[ySize - 1][0] = inRange(0, 10, 20);
-            map[ySize - 1][xSize / 2] = inRange(0, 10, 20);
-            map[ySize - 1][xSize - 1] = inRange(0, 10, 20);
+            map[0][0] = inRange(10, 20);
+            map[0][xSize / 2] = inRange(10, 20);
+            map[0][xSize - 1] = inRange(10, 20);
+            map[ySize / 2][0] = inRange(10, 20);
+            map[ySize / 2][xSize - 1] = inRange(10, 20);
+            map[ySize - 1][0] = inRange(10, 20);
+            map[ySize - 1][xSize / 2] = inRange(10, 20);
+            map[ySize - 1][xSize - 1] = inRange(10, 20);
 
             for (int y = 0; y <= ySize / size; y++) {
                 map[y * size][xSize - 1] = map[y * size][0];
@@ -325,7 +555,7 @@ public class Random {
         Array<Float> al = new Array<Float>(4);
         while (step > 0){
             //diamond step
-            System.out.println("Diamond");
+            //System.out.println("Diamond");
             while (true) {
                 a = map[y0][x0];    //four corners of square
                 b = map[y0][x1];
@@ -334,7 +564,7 @@ public class Random {
                 y = y0 + hSize;
                 x = x0 + hSize;
                 map[y][x] = Math.round((a + b + c + d) / 4f);
-                map[y][x] += inRange((int)c,map[y][x]/10f*3 , map[y][x]/10f*5) * variation * next(0);
+                map[y][x] += inRange(map[y][x]/10f*3 , map[y][x]/10f*5) * variation * next();
                 x0 += size;
                 x1 += size;
                 if (x1 >= xSize){
@@ -348,9 +578,7 @@ public class Random {
                 }
             }
 
-            x0 = hSize;
-            y0 = hSize;
-            for (int Y = 0; Y < map.length; Y++){
+            /*for (int Y = 0; Y < map.length; Y++){
                 for (int X = 0; X < map[0].length; X++){
                     if (map[Y][X] == 0){
                         System.out.print("_ ");
@@ -361,7 +589,9 @@ public class Random {
                 System.out.println();
             }
             System.out.println("________________");
-            System.out.println("Square");
+            System.out.println("Square");*/
+            x0 = hSize;
+            y0 = hSize;
             //square step
             while (true){
                 // ==================== left point ======================
@@ -381,7 +611,7 @@ public class Random {
                     }
                 }
                 x = x0 - hSize;
-                map[y0][x] = c / b + (inRange((int)c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                map[y0][x] = c / b + (inRange(map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next());
 
                 // ==================== right point =====================
                 al.clear();
@@ -398,7 +628,7 @@ public class Random {
                     }
                 }
                 x = x0 + hSize;
-                map[y0][x] = c / b + (inRange((int) c, map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next(0));
+                map[y0][x] = c / b + (inRange(map[y0][x]/10f*3, map[y0][x]/10f*5) * variation * next());
 
                 // ==================== top point =======================
                 al.clear();
@@ -415,7 +645,7 @@ public class Random {
                     }
                 }
                 y = y0 + hSize;
-                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+                map[y][x0] = c / b + (inRange(map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next());
 
                 // =================== bottom point =====================
                 al.clear();
@@ -432,7 +662,7 @@ public class Random {
                     }
                 }
                 y = y0 - hSize;
-                map[y][x0] = c / b + (inRange((int) c, map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next(0));
+                map[y][x0] = c / b + (inRange(map[y][x0]/10f*3, map[y][x0]/10f*5) * variation * next());
 
 
                 x0 += size;
@@ -453,7 +683,7 @@ public class Random {
             y0 = 0;
             x1 = size;
             y1 = size;
-            for (int Y = 0; Y < map.length; Y++){
+            /*for (int Y = 0; Y < map.length; Y++){
                 for (int X = 0; X < map[0].length; X++){
                     if (map[Y][X] == 0){
                         System.out.print("_ ");
@@ -464,7 +694,7 @@ public class Random {
                 System.out.println();
             }
             System.out.println("________________");
-            System.out.println(variation);
+            System.out.println(variation);*/
         }
         return map;
     }
@@ -488,7 +718,7 @@ public class Random {
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
                 if (map[y][x] == 1){                //if its deep ocean
-                    if (next(0) > 0.2){             //randomly get the neighbours in 1 or 2 range
+                    if (next() > 0.2){             //randomly get the neighbours in 1 or 2 range
                         adj = getPointInRange (x, y, 2);
                     }else {
                         adj = getNeighbours(x, y);
@@ -677,15 +907,19 @@ public class Random {
         }
     }
 
-    public int nextPosInt(int x, int range){
-        return (int)Math.abs(Math.round(next(x)*range));
+    public int nextPosInt(int range){
+        return Math.abs(Math.round(next()*range));
     }
 
-    public float inRange(int x, double min, double max){
+    public float inRange(float min, float max){
         return (float)(min + random.nextDouble() * (max-min));
     }
 
-    public float next(int x){
+    public float nextPosFloat(){
+        return random.nextFloat();
+    }
+
+    public float next(){
         float y = (float)random.nextDouble();
         if (random.nextDouble() > 0.5d){
             return y;

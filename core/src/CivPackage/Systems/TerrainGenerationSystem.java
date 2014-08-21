@@ -11,16 +11,16 @@ import java.util.Random;
 public class TerrainGenerationSystem {
 
     private Random r;
-    private Vector2[][] gradients;
 
     public TerrainGenerationSystem(int seed){
         r = new Random(seed);
-        gradients = setupGradients(6, 6);
     }
 
-    public int[][] generate(int xSize, int ySize){
+    private Vector2[][] gradients;
+    public int[][] generatePerlin(int xSize, int ySize){
         int[][] intMap = new int[ySize][xSize];
         float[][] map = new float[ySize][xSize];
+        gradients = setupGradients(2, 2);
 
         for (int y = 0; y< map.length; y++){
             for (int x = 0; x < map[0].length; x++){
@@ -28,14 +28,48 @@ public class TerrainGenerationSystem {
             }
         }
 
-        float yInc = 5f/ySize;
-        float xInc = 5f/xSize;
+        float yInc = 1f/ySize;
+        float xInc = 1f/xSize;
+        float temp;
+        float max = -999;
+        float min = 999;
 
-        for (float y = 0; y < 5; y+=yInc){
-            for (float x = 0; x < 5; x+=xInc){
-                map[Math.round(y*yInc)][Math.round(x*xInc)] = perlinNoise(x, y);
+        //generate the perlin noise
+        for (float y = 0; y < 1; y+=yInc){
+            for (float x = 0; x < 1; x+=xInc){
+                temp = perlinNoise(x, y);
+                map[Math.round(y*yInc)][Math.round(x*xInc)] = temp;
+
+                if (temp > max){ max = temp;}
+                else if (temp < min) {min = temp;}
             }
         }
+        System.out.println (max + " " + min);
+
+        //figure out the z score, and find a max and min value
+        map = CivPackage.Random.zScores(map);
+        max = -999;
+        min = 999;
+        for (int y = 0; y< map.length; y++) {
+            for (int x = 0; x < map[0].length; x++) {
+                temp = map[y][x];
+                if (temp > max){ max = temp;}
+                else if (temp < min) {min = temp;}
+            }
+        }
+        System.out.println (max + " Z " + min);
+
+        //move the max/min to 1/-1
+        for (int y = 0; y< map.length; y++) {
+            for (int x = 0; x < map[0].length; x++) {
+                if (map[y][x] >= 0){
+                    map[y][x] = map[y][x]/max;
+                }else{
+                    map[y][x] = map[y][x]/min;
+                }
+            }
+        }
+
 
         for (int y = 0; y< map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
@@ -85,8 +119,8 @@ public class TerrainGenerationSystem {
         float temp;
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
-                temp = r.nextFloat()*3.14f;
-               gradients[x][y] = new Vector2((float)Math.sin(temp),(float)Math.cos(temp));
+                temp = r.nextFloat()*3.14159f;
+                gradients[x][y] = new Vector2((float)Math.sin(temp),(float)Math.cos(temp));
             }
         }
         return gradients;

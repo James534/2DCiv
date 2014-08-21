@@ -33,4 +33,17 @@ public class MathCalc {
         pixelPos.y = pos.y * Hex.HexHS;
         return pixelPos;
     }
+
+    /**
+     * Returns the distance between the 2 points in a hex grid
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @return
+     */
+    public static int distanceBetween(int x1, int y1, int x2, int y2){
+        return (int)Math.max (Math.abs(y2 - y1),
+                Math.abs( (x2+Math.floor(y2/2f)) - (x1+Math.floor(y1/2f)) ));
+    }
 }

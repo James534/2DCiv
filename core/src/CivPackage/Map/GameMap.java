@@ -18,24 +18,18 @@ public class GameMap {
         this.ySize = ySize;
 
         Random r = new Random(1047155);
-        //TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
+        map = r.generateHexMap(xSize, ySize);
+        /*TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);
-        //int[][] heightMap = tgs.generate(xSize, ySize);
+        //int[][] heightMap = tgs.generatePerlin(xSize, ySize);
 
         map = new Hex[ySize][xSize];
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length;x++){
                 map[y][x] = new Hex(heightMap[y][x], x, y);
             }
-        }
-        /*map[7][5] = new Hex (9,5,7);
-        map[8][5] = new Hex(2,5,8);
-        map[9][5] = new Hex(2,5,9);
-        map[9][4] = new Hex(2,4,9);
-        map[10][5] = new Hex(2,5,10);
-        map[10][6] = new Hex(2,6,10);
-        map[10][7] = new Hex(2,7,10);*/
+        }*/
     }
 
     public void addUnit(Entity unit){

@@ -29,11 +29,28 @@ public class Hex extends Actor{
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static Texture[] textures = {new Texture(GameProject.fileName + "Hex/Hex0.png")
+    private static final String[] hexNames = {(GameProject.fileName + "Hex/Hex0.png")
+            , (GameProject.fileName + "Hex/OceanDeep.png"), (GameProject.fileName + "Hex/OceanLight.png")
+            , (GameProject.fileName + "Hex/Plains.png"), (GameProject.fileName + "Hex/PlainsHill.png"), (GameProject.fileName + "Hex/PlainsMountain.png")
+            , (GameProject.fileName + "Hex/Grass.png"), (GameProject.fileName + "Hex/GrassHill.png"), (GameProject.fileName + "Hex/GrassMountain.png")
+            , (GameProject.fileName + "Hex/Desert.png"), (GameProject.fileName + "Hex/DesertHill.png"), (GameProject.fileName + "Hex/DesertMountain.png")
+            , (GameProject.fileName + "Hex/Hex7.png")
+    };
+
+    private static final Texture[] textures = {new Texture(GameProject.fileName + "Hex/Hex0.png")
             , new Texture(GameProject.fileName + "Hex/OceanDeep.png"), new Texture(GameProject.fileName + "Hex/OceanLight.png")
             , new Texture(GameProject.fileName + "Hex/Plains.png"), new Texture(GameProject.fileName + "Hex/PlainsHill.png"), new Texture(GameProject.fileName + "Hex/PlainsMountain.png")
             , new Texture(GameProject.fileName + "Hex/Grass.png"),  new Texture(GameProject.fileName + "Hex/GrassHill.png"),  new Texture(GameProject.fileName + "Hex/GrassMountain.png")
-            , new Texture(GameProject.fileName + "Hex/Desert.png"), new Texture(GameProject.fileName + "Hex/DesertHill.png"), new Texture(GameProject.fileName + "Hex/DesertMountain.png")};
+            , new Texture(GameProject.fileName + "Hex/Desert.png"), new Texture(GameProject.fileName + "Hex/DesertHill.png"), new Texture(GameProject.fileName + "Hex/DesertMountain.png")
+            , new Texture(GameProject.fileName + "Hex/Hex7.png")
+    };
+    private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River1.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River2.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River3.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River4.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River5.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River6.png"))
+    };
 
     public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/Selected.png");
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/Path.png"));
@@ -54,46 +71,66 @@ public class Hex extends Actor{
             even = false;
         }
         this.id = id;
-        texture = textures[id%10];
-        switch (id){
-            case 10:
-                texture = textures[3];
-                break;
-            case 18:
-                texture = textures[4];
-                break;
-            case 19:
-                texture = textures[5];
-                break;
-            case 20:
-                texture = textures[6];
-                break;
-            case 28:
-                texture = textures[7];
-                break;
-            case 29:
-                texture = textures[8];
-                break;
-            case 30:
-                texture = textures[9];
-                break;
-            case 38:
-                texture = textures[10];
-                break;
-            case 39:
-                texture = textures[11];
-                break;
+        texture = textures[getImageId(id)];
+
+        if (id / 100 == 1){
+            Pixmap p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/Hex7.png"));
+            p.drawPixmap(rivers[0], 0, 0);
+            p.drawPixmap(rivers[2], 0, 0);
+            texture = new Texture(p);
         }
 
-        cost = id;
+        cost = 1;
         if (id == 9){
             walkable = false;
-        }else if (id == 5){
-            cost = 0.5f;
         }
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
+    }
+
+    private int getImageId(int id){
+        switch (id){
+            case 1:
+                return 1;
+            case 2:
+                return 2;
+            case 10:
+                return 3;
+            case 18:
+                return 4;
+            case 19:
+                return 5;
+            case 20:
+                return 6;
+            case 28:
+                return 7;
+            case 29:
+                return 8;
+            case 30:
+                return 9;
+            case 38:
+                return 10;
+            case 39:
+                return 11;
+            case 40:
+                return 12;
+            case 48:
+                return 12;
+            case 49:
+                return 12;
+        }
+        return 0;
+    }
+
+    public void addRiver(String where){
+        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id)]));
+        for (int i = 0; i < where.length(); i++){
+            if (where.charAt(i) == '1'){
+                p.drawPixmap(rivers[i], 0, 0);
+            }
+        }
+        texture = new Texture(p);
     }
 
     public void selected(boolean t){
