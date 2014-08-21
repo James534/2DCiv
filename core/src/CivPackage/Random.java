@@ -229,7 +229,7 @@ public class Random {
                                 temp++;
                             }
                         }
-                        if (temp > 2){
+                        if (temp > 2){                      //if there are more than 2 land tiles neighbouring this tile, add it to the shore lists
                             shore.add(new Point(x, y));
                         }
                     }
@@ -313,12 +313,12 @@ public class Random {
                 for (Point p : lakes) {                                 //checks if the shore is actually a lake, sometimes this happens and the lake generates 2 rivers
                     if (tempPoint.x == p.x && tempPoint.y == p.y) {
                         break rivers;
-                    }else if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 7){   //if there is already a river within 5 hexes of the location, don't use it
+                    }else if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 5){   //if there is already a river within 5 hexes of the location, don't use it
                         break rivers;
                     }
                 }
                 for (Point p: riverStartLocations){
-                    if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 7){          //checks if there is another river starting within 7 hexes, if so, don't use this hex
+                    if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 5){          //checks if there is another river starting within 5 hexes, if so, don't use this hex
                         break rivers;
                     }
                 }
