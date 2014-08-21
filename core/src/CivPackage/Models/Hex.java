@@ -119,6 +119,12 @@ public class Hex extends Actor{
                 return 12;
             case 49:
                 return 12;
+            case 50:
+                return 0;
+            case 58:
+                return 0;
+            case 59:
+                return 0;
         }
         return 0;
     }

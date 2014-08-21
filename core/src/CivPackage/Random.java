@@ -162,6 +162,7 @@ public class Random {
             }
         }
         /* --------------------------------- Converting noise to terrain ----------------------------------*/
+        Array<Point> shore = new Array<Point>();    //list of all the shallow ocean tiles with land next to them, used in river generation
         climateMap = zScores(climateMap);   //convert it to z score again
         int[][] intClimateMap = new int[map.length][map[0].length];
         int middle = map.length/2;
@@ -203,7 +204,7 @@ public class Random {
                         if (climateMap[y][x] < .5) {
                             intClimateMap[y][x] = 40;       //freezing temp, low-mid rain, tundra
                         }else{
-                            intClimateMap[y][x] = 0;        //freezing temp, high rain, snow
+                            intClimateMap[y][x] = 50;        //freezing temp, high rain, snow
                         }
                     }
                     if (map[y][x] == 3){
@@ -219,13 +220,25 @@ public class Random {
                             }
                         }
                     }else {
-                        intClimateMap[y][x] = -1;                  //if it is an ocean tile, ignore it
+                        intClimateMap[y][x] = -1;                   //if it is an ocean tile, ignore it
+                    }
+                    if (map[y][x] == 2) {                   //if its a shallow ocean tile
+                        temp = 0;
+                        for (Point p : getNeighbours(x, y)) {
+                            if (intClimateMap[p.y][p.x] > 10) {     //checks its neighbours for a land tile, if there is one, add it to the shore list
+                                temp++;
+                            }
+                        }
+                        if (temp > 2){
+                            shore.add(new Point(x, y));
+                        }
                     }
                 }
             }
         }
         Array<Integer> coldTerrain = new Array<Integer>();
         coldTerrain.add(40);
+        coldTerrain.add(50);
         coldTerrain.add(0);
         coldTerrain.add(-2);
         //smooths the int array
@@ -280,160 +293,62 @@ public class Random {
         }
 
         //adds rivers
-        int riverLength;
-        int numRivers = 8;
+        int numRivers = 12;
         riverPoints = new Array<Point>();
-        int direction;
-        String data;
-        String[] dirString = {"100000", "010000", "001000", "000100", "000010", "000001"};  //directional strings, for creating river within the hex
-        int x, y;               //x and y of the "base" hex
-        int x0 = 0, y0 = 0;     //x and y of the first point
-        int x1 = 0, y1 = 0;     //x and y of the 2nd point
-        int d0 = 0, d1 = 0;     //string array locations of the directions for the first and 2nd point
-        boolean m0, m1;         //booleans used to make new Points, they are turned false when there is already a point in the array
-        boolean alternate;      //used to keep directions relatively straight, alternates between first and 2nd point
         for (Point p: lakes){   //adds a river from each lake
-            riverLength = Math.round(inRange(8, 16));    //generate how long the river will be
-            System.out.println (riverLength);
-            direction = nextPosInt(6);                  //figure out the initial direction
-            x = p.x;
-            y = p.y;
-            alternate = true;
-            for (int i = 0; i < riverLength; i++){
-                switch (direction){     //there's 2 hexes touching one side of the river, this switch figures out the 2 hexes
-                    case 0:     //top
-                        x0 = x-1 +y%2;
-                        y0 = y+1;
-                        d0 = 1;
-                        x1 = x + y%2;
-                        y1 = y+1;
-                        d1 = 4;
-                        break;
-                    case 1:     //top right
-                        x0 = x +y%2;
-                        y0 = y+1;
-                        d0 = 2;
-                        x1 = x+1;
-                        y1 = y;
-                        d1 = 5;
-                        break;
-                    case 2:     //bottom right
-                        x0 = x+1;
-                        y0 = y;
-                        d0 = 3;
-                        x1 = x +y%2;
-                        y1 = y-1;
-                        d1 = 0;
-                        break;
-                    case 3:     //bottom
-                        x0 = x + y%2;
-                        y0 = y-1;
-                        d0 = 4;
-                        x1 = x-1 +y%2;
-                        y1 = y-1;
-                        d1 = 1;
-                        break;
-                    case 4:     //bottom left
-                        x0 = x-1 +y%2;
-                        y0 = y-1;
-                        d0 = 5;
-                        x1 = x-1;
-                        y1 = y;
-                        d1 = 2;
-                        break;
-                    case 5:     //top left
-                        x0 = x-1;
-                        y0 = y;
-                        d0 = 0;
-                        x1 = x-1 +y%2;
-                        y1 = y+1;
-                        d1 = 3;
-                        break;
-                }
-
-                //checks if any of the 2 tiles are water tiles, meaning that the river has reached the ocean
-                if (intClimateMap[y0][x0] < 10 && intClimateMap[y0][x0] != 0){
-                    break;
-                }else if (intClimateMap[y1][x1] < 10 && intClimateMap[y1][x1] != 0){
-                    break;
-                }
-
-                //checks if there is already a point on the new spots
-                m0 = true;      //resets these two
-                m1 = true;
-                for (Point rp: riverPoints){
-                    if (m0 && rp.x == x0 && rp.y == y0){  //if there is, add the data to it
-                        data = "";
-                        for (int n = 0; n < 6; n++){
-                            if (n == d0){
-                                data += '1';
-                            }else{
-                                data += rp.data.charAt(n);
-                            }
-                        }
-                        rp.data = data;
-                        m0 = false;
-                        if (!m1){break;}
-                    }
-                    if (m1 && rp.x == x1 && rp.y == y1){
-                        data = "";
-                        for (int n = 0; n < 6; n++){
-                            if (n == d1){
-                                data += '1';
-                            }else{
-                                data += rp.data.charAt(n);
-                            }
-                        }
-                        rp.data = data;
-                        m1 = false;
-                        if (!m0){break;}
-                    }
-                }
-
-                //if the 2 points don't already exist, add them to the array
-                if (m0){
-                    riverPoints.add(new Point(x0, y0, dirString[d0]));
-                }
-                if (m1){
-                    riverPoints.add(new Point(x1, y1, dirString[d1]));
-                }
-
-                if (alternate){                     //alternates between first and 2nd point, to keep the direction straight
-                    if (nextPosFloat() > 0.25) {    //75% of keeping in the same direction it is currently flowing through
-                        alternate = false;
-                    }else{
-                        alternate = true;
-                    }
-                    x = x1;
-                    y = y1;
-                    if (direction == 0){
-                        direction = 5;
-                    }else{
-                        direction --;
-                    }
-                }else{
-                    if (nextPosFloat() > 0.25) {
-                        alternate = true;
-                    }else{
-                        alternate = false;
-                    }
-                    x = x0;
-                    y = y0;
-                    if (direction == 5){
-                        direction = 0;
-                    }else{
-                        direction++;
-                    }
-                }
-            }
+            riverPoints = (generateRiver(intClimateMap, p.x, p.y, riverPoints, nextPosInt(5)));
             numRivers--;
         }
 
         //generate extra rivers if there needs to be more
-        while (numRivers > 0){
-            numRivers--;
+        Point tempPoint;
+        int direction = 0;
+        Array<Point> riverStartLocations = new Array<Point>();
+        while (numRivers > 0 && shore.size > 0){
+            tempX = nextPosInt(shore.size-1);
+            tempPoint = shore.get(tempX);                               //gets a random shore point
+            rivers:
+            {
+                shore.removeIndex(tempX);                               //removes this point, even if its a bad point. If it is a bad point, it wont be used again
+                for (Point p : lakes) {                                 //checks if the shore is actually a lake, sometimes this happens and the lake generates 2 rivers
+                    if (tempPoint.x == p.x && tempPoint.y == p.y) {
+                        break rivers;
+                    }else if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 7){   //if there is already a river within 5 hexes of the location, don't use it
+                        break rivers;
+                    }
+                }
+                for (Point p: riverStartLocations){
+                    if (MathCalc.distanceBetween(tempPoint.x, tempPoint.y, p.x, p.y) < 7){          //checks if there is another river starting within 7 hexes, if so, don't use this hex
+                        break rivers;
+                    }
+                }
+                riverStartLocations.add(tempPoint);                     //if this is a good hex, add it to the river starting locations
+                for (Point p : getNeighbours(tempPoint.x, tempPoint.y)) {     //goes through the surrounding tiles and see which direction the river should flow to flow into land
+                    if (intClimateMap[p.y][p.x] > 10) {
+                        if (p.x > tempPoint.x) {
+                            if (p.y > tempPoint.y) {
+                                direction = 1;
+                            } else {
+                                direction = 2;
+                            }
+                        } else {
+                            if (p.y > tempPoint.y) {
+                                direction = 5;
+                            } else {
+                                direction = 4;
+                            }
+                        }
+                        break;
+                    }
+                }
+                riverPoints = generateRiver(intClimateMap, tempPoint.x, tempPoint.y, riverPoints, direction);
+                numRivers--;
+            }
         }
 
+        if (numRivers > 0){
+            System.out.println ("Failed to generate " + numRivers + " rivers");
+        }
 
         //converges all the other maps back into one map
         for (int Y = 0; Y < map.length; Y++){
@@ -448,6 +363,179 @@ public class Random {
             }
         }
         return map;
+    }
+
+    /**
+     * Generates rivers on the map, starting from the given x and y coordinates
+     * @param map       map to generate on, used to check for locations of sea
+     * @param oY        x of the starting point
+     * @param oX        y of the starting point
+     * @param riverPoints   array of already existing rivers
+     * @param oDirection initial direction of the river
+     * @return          array of hexes with rivers on them, located in the data variable on the point
+     */
+    private Array<Point> generateRiver(int[][] map, int oX, int oY, Array<Point> riverPoints, int oDirection){
+        int x = oX, y = oY, direction = oDirection;
+        Array<Point> newRiverPoints = new Array<Point>();
+        int riverLength = Math.round(inRange(8, 16));    //generate how long the river will be
+        String data;
+        String[] dirString = {"100000", "010000", "001000", "000100", "000010", "000001"};  //directional strings, for creating river within the hex
+        int x0 = 0, y0 = 0;     //x and y of the first point
+        int x1 = 0, y1 = 0;     //x and y of the 2nd point
+        int dir0 = 0, dir1 = 0; //string array locations of the directions for the first and 2nd point
+        int counter;            //used to count the number of rivers on the tile, if there is more than 4, retry generating the river
+        boolean makeRiver0, makeRiver1;         //booleans used to make new Points, they are turned false when there is already a point in the array
+        boolean alternate;      //used to keep directions relatively straight, alternates between first and 2nd point
+        alternate = true;
+        riverGen:{
+            for (int i = 0; i < riverLength; i++){
+                switch (direction){     //there's 2 hexes touching one side of the river, this switch figures out the 2 hexes
+                    case 0:     //top
+                        x0 = x-1 +y%2;
+                        y0 = y+1;
+                        dir0 = 1;
+                        x1 = x + y%2;
+                        y1 = y+1;
+                        dir1 = 4;
+                        break;
+                    case 1:     //top right
+                        x0 = x +y%2;
+                        y0 = y+1;
+                        dir0 = 2;
+                        x1 = x+1;
+                        y1 = y;
+                        dir1 = 5;
+                        break;
+                    case 2:     //bottom right
+                        x0 = x+1;
+                        y0 = y;
+                        dir0 = 3;
+                        x1 = x +y%2;
+                        y1 = y-1;
+                        dir1 = 0;
+                        break;
+                    case 3:     //bottom
+                        x0 = x + y%2;
+                        y0 = y-1;
+                        dir0 = 4;
+                        x1 = x-1 +y%2;
+                        y1 = y-1;
+                        dir1 = 1;
+                        break;
+                    case 4:     //bottom left
+                        x0 = x-1 +y%2;
+                        y0 = y-1;
+                        dir0 = 5;
+                        x1 = x-1;
+                        y1 = y;
+                        dir1 = 2;
+                        break;
+                    case 5:     //top left
+                        x0 = x-1;
+                        y0 = y;
+                        dir0 = 0;
+                        x1 = x-1 +y%2;
+                        y1 = y+1;
+                        dir1 = 3;
+                        break;
+                }
+
+                //checks if any of the 2 tiles are water tiles, meaning that the river has reached the ocean
+                if (map[y0][x0] < 10){
+                    break;
+                }else if (map[y1][x1] < 10){
+                    break;
+                }
+                //checks if this point is already a river, if it is, redo the river generation
+                for (Point rp: riverPoints){
+                    if (rp.x == x0 && rp.y == y0){
+                        break riverGen;
+                    }else if (rp.x == x1 && rp.y == y1){
+                        break riverGen;
+                    }
+                }
+
+                //checks if there is already a point on the new spots
+                makeRiver0 = true;      //resets these
+                makeRiver1 = true;
+                for (Point rp: newRiverPoints){
+                    if (makeRiver0 && rp.x == x0 && rp.y == y0){  //if there is, add the data to it
+                        data = "";
+                        counter = 0;
+                        for (int n = 0; n < 6; n++){
+                            if (n == dir0){
+                                data += '1';
+                                counter++;
+                            }else{
+                                data += rp.data.charAt(n);
+                                if (rp.data.charAt(n) == '1'){
+                                    counter++;
+                                }
+                            }
+                        }
+                        if (counter > 3){       //if the river flows through the same tile more than 3 times, redo the generation
+                            break riverGen;
+                        }
+                        rp.data = data;
+                        makeRiver0 = false;
+                        if (!makeRiver1){break;}
+                    }
+                    if (makeRiver1 && rp.x == x1 && rp.y == y1){
+                        data = "";
+                        counter = 0;
+                        for (int n = 0; n < 6; n++){
+                            if (n == dir1){
+                                data += '1';
+                                counter++;
+                            }else{
+                                data += rp.data.charAt(n);
+                                if (rp.data.charAt(n) == '1'){
+                                    counter++;
+                                }
+                            }
+                        }
+                        if (counter > 3){
+                            break riverGen;
+                        }
+                        rp.data = data;
+                        makeRiver1 = false;
+                        if (!makeRiver0){break;}
+                    }
+                }
+
+                //if the 2 points don't already exist, add them to the array
+                if (makeRiver0){
+                    newRiverPoints.add(new Point(x0, y0, dirString[dir0]));
+                }
+                if (makeRiver1){
+                    newRiverPoints.add(new Point(x1, y1, dirString[dir1]));
+                }
+
+                if (alternate){                             //alternates between first and 2nd point, to keep the direction straight
+                    alternate = nextPosFloat() <= 0.25;     //75% of keeping in the same direction it is currently flowing through
+                    x = x1;
+                    y = y1;
+                    if (direction == 0){
+                        direction = 5;
+                    }else{
+                        direction --;
+                    }
+                }else{
+                    alternate = nextPosFloat() > 0.25;
+                    x = x0;
+                    y = y0;
+                    if (direction == 5){
+                        direction = 0;
+                    }else{
+                        direction++;
+                    }
+                }
+            }
+            riverPoints.addAll(newRiverPoints);
+            return riverPoints;
+        }
+        //it will only reach this part if the river fails to generate to the requirements, this will call the method again and *hopefully* generate a good river
+        return generateRiver(map, oX, oY, riverPoints, oDirection);
     }
 
     /**
