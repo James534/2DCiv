@@ -17,6 +17,7 @@ public class Entity extends Actor{
 
     protected int id;               //unit id, unique to each unit
     protected int type;             //what type of unit this is; 1 is land, 2 is sea, 3 is air
+    protected boolean fighting;
     protected int hp;
     protected int maxMovement;      //how much this unit can move
     protected int movement;
@@ -31,7 +32,7 @@ public class Entity extends Actor{
         this.maxMovement = movement;
         this.movement = maxMovement;
         exp = 0;
-        level = 0;
+        level = 1;
     }
 
     public void setMapPos(Vector2 pos){

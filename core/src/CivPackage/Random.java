@@ -16,6 +16,7 @@ public class Random {
     }
 
     Array<Point> riverPoints;
+    Array<Point> startingPoints;
 
     /**
      * Generates a hex map
@@ -37,6 +38,10 @@ public class Random {
         }
         //adding resources
         return map;
+    }
+
+    public Array<Point> getStartingPoints(){
+        return startingPoints;
     }
 
 
@@ -91,8 +96,7 @@ public class Random {
             }
         }
         finalMap = fixLand(finalMap);       //fixes up the patchy land and adds light ocean
-        finalMap = moisture(finalMap);      //generates the other terrain
-        return finalMap;
+        return moisture(finalMap);          //generates the other terrain
     }
 
     private float[][] gradient(float[][] map){
@@ -168,8 +172,8 @@ public class Random {
         int middle = map.length/2;
         float temp;
         for (int y = 0; y < map.length; y++) {
-            for (int x = 0; x < map[0].length; x++) {
-                temp = Math.abs(middle - y);                //how far away this tile is from the middle
+                for (int x = 0; x < map[0].length; x++) {
+                    temp = Math.abs(middle - y);                //how far away this tile is from the middle
                 temp /= middle;
                 if (map[y][x] > 2){                         //if its not an ocean tile, do stuff to it
                     //whittaker diagram; http://pcg.wikidot.com/pcg-algorithm:whittaker-diagram

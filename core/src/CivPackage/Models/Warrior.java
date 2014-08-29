@@ -13,6 +13,7 @@ public class Warrior extends Entity{
         super(pos, id, 20, 2);
         this.texture = new Texture(GameProject.fileName + "Warrior.png");
         this.type = 1;
+        this.fighting = true;
         this.range = 1;
     }
 }

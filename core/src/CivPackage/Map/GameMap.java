@@ -2,8 +2,10 @@ package CivPackage.Map;
 
 import CivPackage.Models.Entity;
 import CivPackage.Models.Hex;
+import CivPackage.Point;
 import CivPackage.Random;
 import CivPackage.Systems.TerrainGenerationSystem;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * Created by james on 6/30/2014.
@@ -19,6 +21,7 @@ public class GameMap {
 
         Random r = new Random(1047155);
         map = r.generateHexMap(xSize, ySize);
+        Array<Point> startingPoints = r.getStartingPoints();
         /*TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);

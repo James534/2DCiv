@@ -72,18 +72,7 @@ public class Hex extends Actor{
         }
         this.id = id;
         texture = textures[getImageId(id)];
-
-        if (id / 100 == 1){
-            Pixmap p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/Hex7.png"));
-            p.drawPixmap(rivers[0], 0, 0);
-            p.drawPixmap(rivers[2], 0, 0);
-            texture = new Texture(p);
-        }
-
         cost = 1;
-        if (id == 9){
-            walkable = false;
-        }
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
@@ -137,15 +126,6 @@ public class Hex extends Actor{
             }
         }
         texture = new Texture(p);
-    }
-
-    public void selected(boolean t){
-        selected = t;
-        if (selected){
-            texture = textures[7];
-        }else {
-            texture = textures[id%8];
-        }
     }
 
     public Texture getTexture(){
