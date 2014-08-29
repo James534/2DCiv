@@ -68,18 +68,34 @@ public class CameraMovementSystem {
             moveTo = false;
         }
     }
-
+    //File names of the hex tiles
+    private static String[] hexNames = {"Hex0",
+            "Ocean",    "OceanAtoll",       "OceanIce",
+            "Shore",    "ShoreAtoll",       "ShoreIce",
+            "Desert",   "DesertHills",      "DesertMountain",   "DesertFallout",    "DesertOasis",      "DesertFloodplains",
+            "Grassland","GrasslandHills",   "GrasslandMountain","GrasslandFallout", "GrasslandForest",  "GrasslandHillForest","GrasslandHillJungle","GrasslandJungle","GrasslandMarsh",
+            "Plains",   "PlainsHills",      "PlainsMountain",   "PlainsFallout",    "PlainsForest",     "PlainsHillForest",
+            "Snow",     "SnowHills",        "SnowMountain",
+            "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest"
+    };
     public void zoomCam(int amount){
-        camZoom += amount * 0.2f;
+        camZoom += amount * 1f;
         camZoom *= 5;
         camZoom = Math.round(camZoom)/5f;
         if (camZoom < 0.4)
             camZoom = 0.4f;
-        else if (camZoom > 4){
-            camZoom = 4;
+        else if (camZoom > 18){
+            camZoom = 18;
         }
-        camVel.x = camSpeed.x * camZoom;
-        camVel.y = camSpeed.y * camZoom;
+        //if the zoom is above 8, stop moving the camera after change in zoom, since it takes forever to stop
+        if (camZoom > 8){
+            camVel.x = 0;
+            camVel.y = 0;
+        }else {
+            //below 8 seems fine
+            camVel.x = camSpeed.x * camZoom;
+            camVel.y = camSpeed.y * camZoom;
+        }
         cam.zoom = camZoom;
     }
 

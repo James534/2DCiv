@@ -29,21 +29,33 @@ public class Hex extends Actor{
     private Entity unit;    //the unit that is currently on this hex
 
     private Texture texture;
-    private static final String[] hexNames = {(GameProject.fileName + "Hex/Hex0.png")
-            , (GameProject.fileName + "Hex/OceanDeep.png"), (GameProject.fileName + "Hex/OceanLight.png")
-            , (GameProject.fileName + "Hex/Plains.png"), (GameProject.fileName + "Hex/PlainsHill.png"), (GameProject.fileName + "Hex/PlainsMountain.png")
-            , (GameProject.fileName + "Hex/Grass.png"), (GameProject.fileName + "Hex/GrassHill.png"), (GameProject.fileName + "Hex/GrassMountain.png")
-            , (GameProject.fileName + "Hex/Desert.png"), (GameProject.fileName + "Hex/DesertHill.png"), (GameProject.fileName + "Hex/DesertMountain.png")
-            , (GameProject.fileName + "Hex/Hex7.png")
-    };
 
-    private static final Texture[] textures = {new Texture(GameProject.fileName + "Hex/Hex0.png")
-            , new Texture(GameProject.fileName + "Hex/OceanDeep.png"), new Texture(GameProject.fileName + "Hex/OceanLight.png")
-            , new Texture(GameProject.fileName + "Hex/Plains.png"), new Texture(GameProject.fileName + "Hex/PlainsHill.png"), new Texture(GameProject.fileName + "Hex/PlainsMountain.png")
-            , new Texture(GameProject.fileName + "Hex/Grass.png"),  new Texture(GameProject.fileName + "Hex/GrassHill.png"),  new Texture(GameProject.fileName + "Hex/GrassMountain.png")
-            , new Texture(GameProject.fileName + "Hex/Desert.png"), new Texture(GameProject.fileName + "Hex/DesertHill.png"), new Texture(GameProject.fileName + "Hex/DesertMountain.png")
-            , new Texture(GameProject.fileName + "Hex/Hex7.png")
+    //File names of the hex tiles
+    private static String[] hexNames = {"Hex0",             //0
+            "Ocean",    "OceanAtoll",       "OceanIce",     //3
+            "Shore",    "ShoreAtoll",       "ShoreIce",     //6
+            "Desert",   "DesertHills",      "DesertMountain",   "DesertFallout",    "DesertOasis",      "DesertFloodplains",    //12
+            "Grassland","GrasslandHills",   "GrasslandMountain","GrasslandFallout", "GrasslandForest",  "GrasslandHillForest","GrasslandHillJungle","GrasslandJungle",  //20
+            "Plains",   "PlainsHills",      "PlainsMountain",   "PlainsFallout",    "PlainsForest",     "PlainsHillForest",     //26
+            "Snow",     "SnowHills",        "SnowMountain", //29
+            "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest"
     };
+    static{
+        //assembles the file name into the full file name, to avoid repeating code above
+        for (int i = 0; i < hexNames.length; i++){
+            hexNames[i] = GameProject.fileName + "Hex/256/Tiles/" + hexNames[i] + ".png";
+        }
+    }
+
+    //Array of textures preloaded from the file names above
+    private static Texture[] textures;
+    static {
+        textures = new Texture[hexNames.length];
+        for (int i = 0; i < hexNames.length; i++){
+            textures[i] = new Texture(hexNames[i]);
+        }
+    }
+
     private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River1.png"))
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River2.png"))
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River3.png"))
@@ -52,15 +64,15 @@ public class Hex extends Actor{
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River6.png"))
     };
 
-    public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/Selected.png");
-    public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/Path.png"));
+    public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/256/SelectedHex.png");
+    public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
-    public static final int HexS = 30;
-    public static final int HexH = 15;  //S * sin(30) (height)
-    public static final int HexR = 26;  //S * cos(30) (radius)
-    public static final int HexD = 52;  //2 * HexR    (diameter)
-    public static final int HexHS= 45;  //HexH + HexS
+    public static final int HexS = 128;
+    public static final int HexH = 64;  //S * sin(30) (height)
+    public static final int HexR = 110; //S * cos(30) (radius)
+    public static final int HexD = 220; //2 * HexR    (diameter)
+    public static final int HexHS= 192; //HexH + HexS
 
     /*
     Id directory:
@@ -128,135 +140,120 @@ public class Hex extends Actor{
         switch (id.charAt(1)){
             case 'a':{                                  //ocean
                 if (id.charAt(2) == 'e')    //ice
-                    return 0;
+                    return 3;
                 else
                     return 1;               //ocean
             }case 'b':{                                 //shore/lake
                 switch (id.charAt(2)){
                     case '0':
-                        return 2;           //shore/lake
+                        return 4;           //shore/lake
                     case 'a':
-                        return 0;           //atoll
+                        return 5;           //atoll
                     case 'e':
-                        return 0;           //ice
+                        return 6;           //ice
                     default:
-                        return 2;
+                        return 4;
                 }
             }case 'c':{                                 //desert
                 switch (id.charAt(0)){
                     case 'c':   //mountain
-                        return 11;          //desert mountain
+                        return 9;          //desert mountain
                     case 'a':{  //flat land
                         switch (id.charAt(2)){
                             case '0':
-                                return 9;   //desert
+                                return 7;    //desert
                             case 'c':
-                                return 0;   //flood plains
+                                return 12;   //flood plains
                             case 'h':
-                                return 0;   //oasis
+                                return 11;   //oasis
                             default:
-                                return 9;
+                                return 7;
                         }
                     }
                     case 'b':{  //hill
-                        switch (id.charAt(2)){
-                            case '0':
-                                return 10;  //desert hill
-                            case 'c':
-                                return 0;   //flood plains
-                            case 'h':
-                                return 0;   //oasis
-                            default:
-                                return 10;
-                        }
+                        return 8;          //desert hills
                     }
                 }
             }case 'd':{                                 //grassland
                 switch (id.charAt(0)){
                     case 'c':   //mountain
-                        return 8;           //grassland mountain
+                        return 15;           //grassland mountain
                     case 'a':{  //flat land
                         switch (id.charAt(2)){
                             case '0':
-                                return 6;   //grassland
+                                return 13;   //grassland
                             case 'd':
-                                return 0;   //forest
+                                return 19;   //forest
                             case 'f':
-                                return 0;   //jungle
+                                return 20;   //jungle
                             case 'g':
-                                return 0;   //marsh
+                                return 21;   //marsh
                             default:
-                                return 6;
+                                return 13;
                         }
                     }
                     case 'b':{  //hill
                         switch (id.charAt(2)){
                             case '0':
-                                return 7;   //grassland hill
+                                return 14;   //grassland hill
                             case 'd':
-                                return 0;   //forest
+                                return 18;   //forest
                             case 'f':
-                                return 0;   //jungle
-                            case 'g':
-                                return 0;   //marsh
+                                return 19;   //jungle
                             default:
-                                return 7;
+                                return 14;
                         }
                     }
                 }
             }case 'e':{                                 //plains
                 switch (id.charAt(0)){
                     case 'c':   //mountain
-                        return 5;           //plains mountain
+                        return 23;           //plains mountain
                     case 'a':{  //flat land
                         switch (id.charAt(2)){
                             case '0':
-                                return 3;   //plains
+                                return 21;   //plains
                             case 'd':
-                                return 0;   //forest
-                            case 'f':
-                                return 0;   //jungle
+                                return 25;   //forest
                             default:
-                                return 3;
+                                return 21;
                         }
                     }
                     case 'b':{  //hill
                         switch (id.charAt(2)){
                             case '0':
-                                return 4;   //plains hill
+                                return 22;   //plains hill
                             case 'd':
-                                return 0;   //forest
-                            case 'f':
-                                return 0;   //jungle
+                                return 26;   //forest
                             default:
-                                return 4;
+                                return 22;
                         }
                     }
                 }
             }case 'f':{                                 //snow
                 switch (id.charAt(0)){
                     case 'a':{  //flat land
-                        return 0;
+                        return 28;
                     }case 'b':{ //hill
-                        return 0;
+                        return 29;
                     }case 'c':{ //mountain
-                        return 0;
+                        return 30;
                     }
                 }
             }case 'g':{                                 //tundra
                 switch (id.charAt(0)){
                     case 'a':{  //flat land
                         if (id.charAt(2) == 'd')
-                            return 0;       //forest
+                            return 34;      //forest
                         else
-                            return 12;      //tundra
+                            return 30;      //tundra
                     }case 'b':{ //hill
                         if (id.charAt(2) == 'd')
-                            return 0;       //forest
+                            return 35;      //forest
                         else
-                            return 12;      //tundra hill
+                            return 31;      //tundra hill
                     }case 'c':  //mountain
-                        return 0;           //tundra mountain
+                        return 32;          //tundra mountain
                 }
             }
             default:
