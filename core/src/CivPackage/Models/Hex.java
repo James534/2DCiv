@@ -21,7 +21,7 @@ public class Hex extends Actor{
     private boolean even;   //if this tile is even or odd
     private boolean selected;
 
-    private int id;         //what this tile is
+    private String id;         //what this tile is
     private int resource;   //id of the resource
     private int SRCount;    //amount of strategic resource, iron, horses, etc
     private float cost;       //how much it costs to move across this tile
@@ -62,7 +62,40 @@ public class Hex extends Actor{
     public static final int HexD = 52;  //2 * HexR    (diameter)
     public static final int HexHS= 45;  //HexH + HexS
 
-    public Hex(int id, int x, int y){
+    /*
+    Id directory:
+        abcdefghijklmn
+
+        |letter and name|------------------|a,          b,          c,              d,          e,      f,      g,      h
+        0  a: terrain type;                 flat land,  hill,       mountain
+        1  b: terrain;                      ocean,      coast/lake, desert,         grassland,  plains, snow,   tundra
+        2  c: terrain features;             atoll,      fallout,    flood plains,   forest,     ice,    jungle, marsh,  oasis
+        3  d: rivers/fresh water;           top right,  right,      bottom right,   bottom left,left,   top left,lake
+        4  e: wonders;                      17 of them
+        5  f: food resource;                bananas,    wheat,      cattle,         sheep,      deer,   fish,   stone
+        6  g: luxury resource;              25 of them
+        7  h: strategic resource;           horses,     iron,       coal,           aluminum,   oil,    uranium
+        8  i: pillaged improvement;         yes,        no
+        9  j: great people improvements;    8 of them
+        10 k: regular improvements;         21 of them
+        11 l: roads;                        road,       railroad
+        12 m: exploration;                  explored,   unexplored
+        13 n: land ownership;               free land,  your land
+
+        Wonders:
+        Luxury resource:
+        GP improvements:                    academy, ancient ruins, citadel, city ruins, customs house, encampment, holy site, manufactory
+        Regular improvements:               archaeological dig, brazilwood camp, camp, chateau, farm, feitoria, fishing boats, fort, kasbah,
+                                            landmark, lumber mill, mine, moai, offshore platform, oil well, pasture, plantation, polder, quarry, terrance farm, trading post
+     */
+
+    /**
+     *  Creates a new hex
+     * @param id    refer to the chart on top for what the id means
+     * @param x
+     * @param y
+     */
+    public Hex(String id, int x, int y){
         pixelPos = new Vector2();
         pos = new Vector2(x,y);
         if (pos.y%2 == 0){
@@ -70,56 +103,169 @@ public class Hex extends Actor{
         }else{
             even = false;
         }
+        id = id.toLowerCase();
         this.id = id;
-        texture = textures[getImageId(id)];
+
+        //assign the texture
+        /*if (id.charAt(4) != 0){     //checks if this is a wonder, if it is, just assign it the wonder texture
+            texture = textures[0];
+        }else {
+            texture = textures[getImageId(id.substring(0, 3))];
+        }*/
+        texture = textures[getImageId(id.substring(0, 3))];
         cost = 1;
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
     }
 
-    private int getImageId(int id){
-        switch (id){
-            case 1:
-                return 1;
-            case 2:
-                return 2;
-            case 10:
-                return 3;
-            case 18:
-                return 4;
-            case 19:
-                return 5;
-            case 20:
-                return 6;
-            case 28:
-                return 7;
-            case 29:
-                return 8;
-            case 30:
-                return 9;
-            case 38:
-                return 10;
-            case 39:
-                return 11;
-            case 40:
-                return 12;
-            case 48:
-                return 12;
-            case 49:
-                return 12;
-            case 50:
-                return 0;
-            case 58:
-                return 0;
-            case 59:
+    /**
+     * Returns the image id of the hex using a bunch of switches
+     * @param id the first 3 characters of the hex id
+     * @return  integer of the location in the array which the image is stored in
+     */
+    private int getImageId(String id){
+        switch (id.charAt(1)){
+            case 'a':{                                  //ocean
+                if (id.charAt(2) == 'e')    //ice
+                    return 0;
+                else
+                    return 1;               //ocean
+            }case 'b':{                                 //shore/lake
+                switch (id.charAt(2)){
+                    case '0':
+                        return 2;           //shore/lake
+                    case 'a':
+                        return 0;           //atoll
+                    case 'e':
+                        return 0;           //ice
+                    default:
+                        return 2;
+                }
+            }case 'c':{                                 //desert
+                switch (id.charAt(0)){
+                    case 'c':   //mountain
+                        return 11;          //desert mountain
+                    case 'a':{  //flat land
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 9;   //desert
+                            case 'c':
+                                return 0;   //flood plains
+                            case 'h':
+                                return 0;   //oasis
+                            default:
+                                return 9;
+                        }
+                    }
+                    case 'b':{  //hill
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 10;  //desert hill
+                            case 'c':
+                                return 0;   //flood plains
+                            case 'h':
+                                return 0;   //oasis
+                            default:
+                                return 10;
+                        }
+                    }
+                }
+            }case 'd':{                                 //grassland
+                switch (id.charAt(0)){
+                    case 'c':   //mountain
+                        return 8;           //grassland mountain
+                    case 'a':{  //flat land
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 6;   //grassland
+                            case 'd':
+                                return 0;   //forest
+                            case 'f':
+                                return 0;   //jungle
+                            case 'g':
+                                return 0;   //marsh
+                            default:
+                                return 6;
+                        }
+                    }
+                    case 'b':{  //hill
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 7;   //grassland hill
+                            case 'd':
+                                return 0;   //forest
+                            case 'f':
+                                return 0;   //jungle
+                            case 'g':
+                                return 0;   //marsh
+                            default:
+                                return 7;
+                        }
+                    }
+                }
+            }case 'e':{                                 //plains
+                switch (id.charAt(0)){
+                    case 'c':   //mountain
+                        return 5;           //plains mountain
+                    case 'a':{  //flat land
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 3;   //plains
+                            case 'd':
+                                return 0;   //forest
+                            case 'f':
+                                return 0;   //jungle
+                            default:
+                                return 3;
+                        }
+                    }
+                    case 'b':{  //hill
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 4;   //plains hill
+                            case 'd':
+                                return 0;   //forest
+                            case 'f':
+                                return 0;   //jungle
+                            default:
+                                return 4;
+                        }
+                    }
+                }
+            }case 'f':{                                 //snow
+                switch (id.charAt(0)){
+                    case 'a':{  //flat land
+                        return 0;
+                    }case 'b':{ //hill
+                        return 0;
+                    }case 'c':{ //mountain
+                        return 0;
+                    }
+                }
+            }case 'g':{                                 //tundra
+                switch (id.charAt(0)){
+                    case 'a':{  //flat land
+                        if (id.charAt(2) == 'd')
+                            return 0;       //forest
+                        else
+                            return 12;      //tundra
+                    }case 'b':{ //hill
+                        if (id.charAt(2) == 'd')
+                            return 0;       //forest
+                        else
+                            return 12;      //tundra hill
+                    }case 'c':  //mountain
+                        return 0;           //tundra mountain
+                }
+            }
+            default:
                 return 0;
         }
-        return 0;
     }
 
     public void addRiver(String where){
-        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id)]));
+        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id.substring(0, 3))]));
         for (int i = 0; i < where.length(); i++){
             if (where.charAt(i) == '1'){
                 p.drawPixmap(rivers[i], 0, 0);

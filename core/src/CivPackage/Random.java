@@ -26,7 +26,7 @@ public class Random {
      */
     public Hex[][] generateHexMap(int xSize, int ySize){
         Hex[][] map = new Hex[xSize][ySize];
-        int[][] intMap = generateTerrain(xSize, ySize);         //the terrain map
+        String[][] intMap = generateTerrain(xSize, ySize);         //the terrain map
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
                 map[y][x] = new Hex(intMap[y][x], x, y);
@@ -51,7 +51,7 @@ public class Random {
      * @param ySize
      * @return
      */
-    public int[][] generateTerrain(int xSize, int ySize){
+    public String[][] generateTerrain(int xSize, int ySize){
         float[][] map = diamondSquare(xSize, ySize, 32, 4f, true);    //generates the map
 
         float[][][] mapGen = new float[5][ySize][xSize];
@@ -76,22 +76,22 @@ public class Random {
         map = zScores(map);                             //converts the map to a z score
 
         //Landmass Codes:
-        //1 is deep ocean, 2 is light ocean, 3 is land, 8 is hill, 9 is mountain
+        //49 is deep ocean, 50 is light ocean, 97 is land, 98 is hill, 99 is mountain
         int[][] finalMap = new int[ySize][xSize];
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
                 if (map[Y][X] < 0.5){
-                    finalMap[Y][X] = 1;     //deep ocean, light ocean is 2, to be added in fixLand
+                    finalMap[Y][X] = 49;     //deep ocean, light ocean is 50, to be added in fixLand
                 }else if (map[Y][X] < 1.4){
-                    finalMap[Y][X] = 3;     //land
+                    finalMap[Y][X] = 97;     //land
                 }else if (map[Y][X] < 1.6){
-                    finalMap[Y][X] = 8;     //hills
+                    finalMap[Y][X] = 98;     //hills
                 }else if (map[Y][X] < 1.8){
-                    finalMap[Y][X] = 3;     //land
+                    finalMap[Y][X] = 97;     //land
                 }else if (map[Y][X] < 2.5){
-                    finalMap[Y][X] = 8;     //hills
+                    finalMap[Y][X] = 98;     //hills
                 }else{
-                    finalMap[Y][X] = 9;     //mountains
+                    finalMap[Y][X] = 99;     //mountains
                 }
             }
         }
@@ -100,7 +100,6 @@ public class Random {
     }
 
     private float[][] gradient(float[][] map){
-
         for (int x = 0; x < map[0].length; x++){
             for (int y = 0; y < map.length/9; y++) {
                 map[y][x] *= y/(map.length/9) * next();
@@ -126,26 +125,27 @@ public class Random {
      * Generates the terrain and features of the map <br>
      *     There are 3 main terrains; plains, grasslands, and desert <br>
      *     Tundra and snow are near the poles
-     * @param       map using Landmass Codes
-     * @return      map with terrain and features, using Terrain Codes
+     * @param       map integer map
+     * @return      string map using the id codes found in the hex class
      */
-    private int[][] moisture(int[][] map){
-        /*
-        Terrain codes:              Terrain feature codes:
-        -1 is invalid               x0 is regular
-        0-9 is water stuff          x1 is forest/jungle
-        10-19 is plains
-        20-29 is grassland
-        30-39 is desert
-        40-49 is tundra             x8 is hill
-        50-59 is snow               x9 is mountain
-        60+ are wonders
-         */
+    private String[][] moisture(int[][] map){
         //http://forums.steampowered.com/forums/showthread.php?t=1580535
         //http://pcg.wikidot.com/pcg-algorithm:map-generation
         //http://pcg.wikidot.com/pcg-algorithm:fractal-river-basins   generate rivers
         //https://aftbit.com/cell-noise-2/ cell noise, different method for generating noise
 
+        String[][] stringMap = new String[map.length][map[0].length];
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map.length; x++){
+                if (map[y][x] == 49) {
+                    stringMap[y][x] = "" + '0';
+                }else if(map[y][x] == 50) {
+                    stringMap[y][x] = "" + '0';
+                }else{
+                    stringMap[y][x] = "" + (char) map[y][x];
+                }
+            }
+        }
         /*--------------------------------------- Generating noise -----------------------------------------*/
         float[][] climateMap = diamondSquare(map[0].length, map.length, 8, 8f, false);
         float[][][] mapGen = new float[5][map.length][map[0].length];                       //generates more noise, to "average" it out
@@ -172,10 +172,10 @@ public class Random {
         int middle = map.length/2;
         float temp;
         for (int y = 0; y < map.length; y++) {
-                for (int x = 0; x < map[0].length; x++) {
-                    temp = Math.abs(middle - y);                //how far away this tile is from the middle
+            for (int x = 0; x < map[0].length; x++) {
+                temp = Math.abs(middle - y);                //how far away this tile is from the middle
                 temp /= middle;
-                if (map[y][x] > 2){                         //if its not an ocean tile, do stuff to it
+                if (map[y][x] > 50){                         //if its not an ocean tile, do stuff to it
                     //whittaker diagram; http://pcg.wikidot.com/pcg-algorithm:whittaker-diagram
                     //adaptation http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
                     //using y as temperature, hottest in the middle of the map, and the z scores as precipitation
@@ -211,25 +211,25 @@ public class Random {
                             intClimateMap[y][x] = 50;        //freezing temp, high rain, snow
                         }
                     }
-                    if (map[y][x] == 3){
-                        map[y][x] = 0;
-                    }
                 }else{
-                    if (temp > 0.8) {
-                        if (map[y][x] == 1) {
+                    if (map[y][x] == 49){
+                        stringMap[y][x] += 'a';
+                        if (temp > 0.8) {
                             if (temp > 0.9){                //edges are always ice
                                 intClimateMap[y][x] = -2;
+                                stringMap[y][x] += "e";
                             }else if (next() > 0.2) {       //closer to the land, less ice
-                                intClimateMap[y][x] = -2;   //ice
+                                intClimateMap[y][x] = -2;
+                                stringMap[y][x] += "e";
                             }
+                        }else {
+                            intClimateMap[y][x] = -1;                   //if it is an ocean tile, ignore it
                         }
-                    }else {
-                        intClimateMap[y][x] = -1;                   //if it is an ocean tile, ignore it
-                    }
-                    if (map[y][x] == 2) {                   //if its a shallow ocean tile
+                    }else if (map[y][x] == 50) {                   //if its a shallow ocean tile
+                        stringMap[y][x] += 'b';
                         temp = 0;
                         for (Point p : getNeighbours(x, y)) {
-                            if (intClimateMap[p.y][p.x] > 10) {     //checks its neighbours for a land tile, if there is one, add it to the shore list
+                            if (valueAt(intClimateMap, p.x, p.y) > 10) {     //checks its neighbours for a land tile, if there is one, add it to the shore list
                                 temp++;
                             }
                         }
@@ -250,20 +250,42 @@ public class Random {
         intClimateMap = smooth(intClimateMap, 20, 2, coldTerrain);
         intClimateMap = smooth(intClimateMap, 30, 2, coldTerrain);
 
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map.length; x++){
+                switch (intClimateMap[y][x]){
+                    case 10:
+                        stringMap[y][x] += 'e';
+                        break;
+                    case 20:
+                        stringMap[y][x] += 'd';
+                        break;
+                    case 30:
+                        stringMap[y][x] += 'c';
+                        break;
+                    case 40:
+                        stringMap[y][x] += 'g';
+                        break;
+                    case 50:
+                        stringMap[y][x] += 'f';
+                        break;
+                }
+            }
+        }
+
         /* --------------------------- Resources and additional terrain ------------------------ */
         Array<Point> lakes = new Array<Point>();
         //checks for already existing lakes
         for (int y = 0; y < intClimateMap.length; y++){
             for (int x = 0; x < intClimateMap[0].length; x++){
-                if (map[y][x] == 2) {
+                if (map[y][x] == 50) {
                     lakes:{
                         for (Point p : getPointInRange(x, y, 1)) {
-                            if (map[p.y][p.x] == 2 || map[p.y][p.x] == 1){
+                            if (map[p.y][p.x] == 50 || map[p.y][p.x] == 49){
                                 break lakes;
                             }
                         }
                         lakes.add(new Point (x, y));
-                        map[y][x] = 1;
+                        map[y][x] = 49;
                         System.out.println ("Already existing lake at " + x + " " + y);
                     }
                 }
@@ -275,10 +297,10 @@ public class Random {
         while (numLakes > 0){
             tempX = Math.round(nextPosInt(map[0].length-1));
             tempY = Math.round(nextPosInt(map.length-1));
-            if (intClimateMap[tempY][tempX] > 0){
+            if (map[tempY][tempX] > 50){
                 addLake:{
                     for (Point p : getNeighbours(tempX, tempY)) {
-                        if (intClimateMap[p.y][p.x] < 0) {       //checks the neighbours and see if the are water tiles
+                        if (valueAt(map, p.x, p.y) != -1 && map[p.y][p.x] < 50) {       //checks the neighbours and see if the are water tiles
                             break addLake;
                         }
                     }
@@ -287,7 +309,7 @@ public class Random {
                             break addLake;                      //dont add a lake if there is already a lake less than 13 hexes from this one
                         }
                     }
-                    intClimateMap[tempY][tempX] = 1;
+                    intClimateMap[tempY][tempX] = 49;
                     map[tempY][tempX] = 0;
                     lakes.add(new Point (tempX, tempY));
                     System.out.println("Added lake to " + tempX + " " + tempY);
@@ -345,7 +367,7 @@ public class Random {
                         break;
                     }
                 }
-                riverPoints = generateRiver(intClimateMap, tempPoint.x, tempPoint.y, riverPoints, direction);
+                riverPoints = generateRiver(map, tempPoint.x, tempPoint.y, riverPoints, direction);
                 numRivers--;
             }
         }
@@ -354,19 +376,14 @@ public class Random {
             System.out.println ("Failed to generate " + numRivers + " rivers");
         }
 
-        //converges all the other maps back into one map
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
-                if (intClimateMap[Y][X] != -1) {
-                    if (intClimateMap[Y][X] == -2){     //ghetto solution for now for ice
-                        map[Y][X] = 0;
-                    }else {
-                        map[Y][X] += intClimateMap[Y][X];
-                    }
+                if (stringMap[Y][X].length() < 3){
+                    stringMap[Y][X] += "0";
                 }
             }
         }
-        return map;
+        return stringMap;
     }
 
     /**
@@ -445,9 +462,9 @@ public class Random {
                 }
 
                 //checks if any of the 2 tiles are water tiles, meaning that the river has reached the ocean
-                if (map[y0][x0] < 10){
+                if (map[y0][x0] < 50){
                     break;
-                }else if (map[y1][x1] < 10){
+                }else if (map[y1][x1] < 50){
                     break;
                 }
                 //checks if this point is already a river, if it is, redo the river generation
@@ -803,63 +820,61 @@ public class Random {
         map = smoothLand(map);
         Array<Point> adj;
         Array<Integer> ocean = new Array<Integer>();    //a list of the ocean tiles, for the smooth method to check if to ignore or not
-        ocean.add (1); ocean.add (2);
+        ocean.add (49); ocean.add (50);
         smooth(map, 1, 2, ocean);                       //helps smooth out the deep ocean tiles
 
         /** Generates coastal tiles for ocean tiles that are touching land*/
         for (int y = 0; y < map.length; y++) {
             for (int x = 0; x < map[0].length; x++) {
-                if (map[y][x] == 1){                //if its deep ocean
+                if (map[y][x] == 49){                //if its deep ocean
                     if (next() > 0.2){             //randomly get the neighbours in 1 or 2 range
                         adj = getPointInRange (x, y, 2);
                     }else {
                         adj = getNeighbours(x, y);
                     }
                     for (Point p: adj){                 //checks the neighbours
-                        if (valueAt(map, p.x, p.y) > 2){//if there's a land tile
-                            map[y][x] = 2;              //changes this tile to light ocean
+                        if (valueAt(map, p.x, p.y) > 50){//if there's a land tile
+                            map[y][x] = 50;              //changes this tile to light ocean
                             break;
                         }
                     }
                 }
             }
         }
-        deleteSingleHex(map, 1);    //deletes the single deep ocean tiles leftover
-        return map;
-    }
 
-    /**
-     * Gets rid of the random single hexes
-     * @param map
-     * @param terrain
-     * @return
-     */
-    private int[][] deleteSingleHex(int[][] map, int terrain){
-        int valueAt, max, counter;
-        int[] terrains = new int[10];
+        //deletes the single deep ocean tiles leftover and replaces it with whatever occurs the most around the tile
+        int mostOccurredTerrain;
+        int max, lastTerrain;
+        int counter;
+        Array<Integer> terrains = new Array<Integer>();     //the different types of terrain
         for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map.length; x++){
-                if (map[y][x] == terrain) {                         //only does these stuff if its on the terrain tile i want to smooth out
+            for (int x = 0; x < map[0].length; x++){
+                if (map[y][x] == 49) {                      //only does this action on ocean tiles
+                    mostOccurredTerrain = 49;
                     max = 0;
-                    counter = terrain;
-                    for (int i = 0; i < terrains.length; i++) {     //resets the array
-                        terrains[i] = 0;
-                    }
+                    counter = 0;
+                    terrains.clear();
                     for (Point p : getNeighbours(x, y)) {
-                        valueAt = valueAt(map, p.x, p.y);
-                        if (valueAt != -1) {         //if its not invalid and if its not an ocean tile
-                            terrains[valueAt]++;
+                        if (valueAt(map, p.x, p.y) != -1) {
+                            terrains.add(map[p.y][p.x]);
                         }
                     }
-                    if (terrains[terrain] < 2){                     //if there's less than 2 hexes of the same terrain
-                        for (int i = 0; i < terrains.length; i++){
-                            if (terrains[i] > max){
-                                max = terrains[i];
-                                counter = i;
+                    terrains.sort();
+                    if (terrains.get(0) != 49){             //if the first position is not 49, then it means there are no ocean tiles nearby
+                        lastTerrain = terrains.get(0);
+                        for (int n = 0; n < terrains.size; n++){
+                            if (terrains.get(n) != lastTerrain){
+                                if (counter > max){
+                                    max = counter;
+                                    mostOccurredTerrain = lastTerrain;
+                                    counter = 0;
+                                }
+                            }else{
+                                counter++;
                             }
                         }
-                        map[y][x] = counter;
                     }
+                    map[y][x] = mostOccurredTerrain;
                 }
             }
         }
@@ -914,18 +929,24 @@ public class Random {
             for (int x = 0; x < map[0].length; x++){
                 counter = 0;
                 max = 4;
-                if (map[y][x] == 1){    //sees if its water or land, and sets terrain to be the opposite
-                    terrain = 4;
+                if (map[y][x] == 49){    //sees if its water or land, and sets terrain to be the opposite
+                    terrain = 97;
                 }else{
-                    terrain = 1;
+                    terrain = 49;
                 }
                 adj = getNeighbours(x, y);
                 for (Point p: adj){
-                    if (valueAt(map, p.x, p.y) == terrain){     //if the neighbours are the same as the opposite terrain
-                        counter++;
-                    }
                     if (valueAt(map, p.x, p.y) == -1){
                         max--;
+                        continue;
+                    }else if (map[y][x] == 49){
+                        if (valueAt(map, p.x, p.y) > 50){
+                            counter++;
+                        }
+                    }else{
+                        if (valueAt(map, p.x, p.y) == 49){
+                            counter++;
+                        }
                     }
                 }
                 if (counter > max){
