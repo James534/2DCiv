@@ -56,12 +56,12 @@ public class Hex extends Actor{
         }
     }
 
-    private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River1.png"))
-            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River2.png"))
-            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River3.png"))
-            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River4.png"))
-            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River5.png"))
-            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/River6.png"))
+    private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River1.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River2.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River3.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River4.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River5.png"))
+            ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River6.png"))
     };
 
     public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/256/SelectedHex.png");
