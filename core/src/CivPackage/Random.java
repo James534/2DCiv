@@ -322,8 +322,8 @@ public class Random {
         int numRivers = 12;
         riverPoints = new Array<Point>();
         for (Point p: lakes){   //adds a river from each lake
-            riverPoints = (generateRiver(intClimateMap, p.x, p.y, riverPoints, nextPosInt(5)));
-            numRivers--;
+            if (generateRiver(intClimateMap, p.x, p.y, riverPoints, nextPosInt(5), 0) != null)
+                numRivers--;
         }
 
         //generate extra rivers if there needs to be more
@@ -367,8 +367,9 @@ public class Random {
                         break;
                     }
                 }
-                riverPoints = generateRiver(map, tempPoint.x, tempPoint.y, riverPoints, direction);
-                numRivers--;
+                if (generateRiver(map, tempPoint.x, tempPoint.y, riverPoints, direction, 0) != null) {
+                    numRivers--;
+                }
             }
         }
 
@@ -395,7 +396,10 @@ public class Random {
      * @param oDirection initial direction of the river
      * @return          array of hexes with rivers on them, located in the data variable on the point
      */
-    private Array<Point> generateRiver(int[][] map, int oX, int oY, Array<Point> riverPoints, int oDirection){
+    private Array<Point> generateRiver(int[][] map, int oX, int oY, Array<Point> riverPoints, int oDirection, int numAttempts){
+        if (numAttempts > 10){      //if there has been more than 10 failed attempts, then just return null and ignore this point
+            return null;
+        }
         int x = oX, y = oY, direction = oDirection;
         Array<Point> newRiverPoints = new Array<Point>();
         int riverLength = Math.round(inRange(8, 16));    //generate how long the river will be
@@ -556,7 +560,8 @@ public class Random {
             return riverPoints;
         }
         //it will only reach this part if the river fails to generate to the requirements, this will call the method again and *hopefully* generate a good river
-        return generateRiver(map, oX, oY, riverPoints, oDirection);
+        System.out.println(numAttempts);
+        return generateRiver(map, oX, oY, riverPoints, oDirection, numAttempts+=1);
     }
 
     /**

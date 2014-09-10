@@ -64,7 +64,7 @@ public class GameScreen implements Screen{
 
 
         //testing
-        unitManagementSystem.createUnit(1, 5, 5);
+        //unitManagementSystem.createUnit(1, 5, 5);
     }
 
     @Override

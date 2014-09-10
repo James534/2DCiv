@@ -1,0 +1,8 @@
+Controls as of Sept 9 2014
+-move the camera with WASD
+-zoom with the mousewheel
+-left click to select a unit (Currently no units on the map due to testing map generation)
+
+Debug keys:
+-"r" to reset the map; it will generate a new map
+-"k" to zoom out to the max, showing the entire map

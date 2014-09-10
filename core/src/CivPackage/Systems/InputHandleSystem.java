@@ -23,6 +23,10 @@ public class InputHandleSystem implements InputProcessor{
         cms = cameraMovementSystem;
         this.uiSystem = uiSystem;
         this.map = map;
+
+        //debugging purposes
+        cms.moveCamTo(map.getHex(map.xSize-1, map.ySize-1).getPixelPos().x/2,map.getHex(map.xSize-1, map.ySize-1).getPixelPos().y/2);
+        cms.zoomCam(99999);
     }
 
     @Override
@@ -47,9 +51,12 @@ public class InputHandleSystem implements InputProcessor{
             case Input.Keys.ESCAPE:
                 uiSystem.cancelSelection();
                 break;
-            case Input.Keys.K:
+            case Input.Keys.K:          //debugging purposes
                 cms.moveCamTo(map.getHex(map.xSize-1, map.ySize-1).getPixelPos().x/2,map.getHex(map.xSize-1, map.ySize-1).getPixelPos().y/2);
                 cms.zoomCam(99999);
+                break;
+            case Input.Keys.R:          //debugging purposes
+                map.reset();
                 break;
         }
         return false;

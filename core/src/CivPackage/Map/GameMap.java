@@ -35,6 +35,13 @@ public class GameMap {
         }*/
     }
 
+    //debug purposes
+    public void reset(){
+        Random r = new Random((int)(Math.random()*1047155));
+        map = null;
+        map = r.generateHexMap(xSize, ySize);
+    }
+
     public void addUnit(Entity unit){
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }
