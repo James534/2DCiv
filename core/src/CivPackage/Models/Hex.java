@@ -35,9 +35,9 @@ public class Hex extends Actor{
             "Ocean",    "OceanAtoll",       "OceanIce",     //3
             "Shore",    "ShoreAtoll",       "ShoreIce",     //6
             "Desert",   "DesertHills",      "DesertMountain",   "DesertFallout",    "DesertOasis",      "DesertFloodplains",    //12
-            "Grassland","GrasslandHills",   "GrasslandMountain","GrasslandFallout", "GrasslandForest",  "GrasslandHillForest","GrasslandHillJungle","GrasslandJungle",  //20
-            "Plains",   "PlainsHills",      "PlainsMountain",   "PlainsFallout",    "PlainsForest",     "PlainsHillForest",     //26
-            "Snow",     "SnowHills",        "SnowMountain", //29
+            "Grassland","GrasslandHills",   "GrasslandMountain","GrasslandFallout", "GrasslandForest",  "GrasslandHillForest","GrasslandHillJungle","GrasslandJungle", "GrasslandMarsh",  //21
+            "Plains",   "PlainsHills",      "PlainsMountain",   "PlainsFallout",    "PlainsForest",     "PlainsHillForest",     //27
+            "Snow",     "SnowHills",        "SnowMountain", //30
             "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest"
     };
     static{
@@ -208,52 +208,52 @@ public class Hex extends Actor{
             }case 'e':{                                 //plains
                 switch (id.charAt(0)){
                     case 'c':   //mountain
-                        return 23;           //plains mountain
+                        return 24;           //plains mountain
                     case 'a':{  //flat land
                         switch (id.charAt(2)){
                             case '0':
-                                return 21;   //plains
-                            case 'd':
-                                return 25;   //forest
-                            default:
-                                return 21;
-                        }
-                    }
-                    case 'b':{  //hill
-                        switch (id.charAt(2)){
-                            case '0':
-                                return 22;   //plains hill
+                                return 22;   //plains
                             case 'd':
                                 return 26;   //forest
                             default:
                                 return 22;
                         }
                     }
+                    case 'b':{  //hill
+                        switch (id.charAt(2)){
+                            case '0':
+                                return 23;   //plains hill
+                            case 'd':
+                                return 27;   //forest
+                            default:
+                                return 23;
+                        }
+                    }
                 }
             }case 'f':{                                 //snow
                 switch (id.charAt(0)){
                     case 'a':{  //flat land
-                        return 28;
-                    }case 'b':{ //hill
                         return 29;
-                    }case 'c':{ //mountain
+                    }case 'b':{ //hill
                         return 30;
+                    }case 'c':{ //mountain
+                        return 31;
                     }
                 }
             }case 'g':{                                 //tundra
                 switch (id.charAt(0)){
                     case 'a':{  //flat land
                         if (id.charAt(2) == 'd')
-                            return 34;      //forest
-                        else
-                            return 30;      //tundra
-                    }case 'b':{ //hill
-                        if (id.charAt(2) == 'd')
                             return 35;      //forest
                         else
-                            return 31;      //tundra hill
+                            return 31;      //tundra
+                    }case 'b':{ //hill
+                        if (id.charAt(2) == 'd')
+                            return 36;      //forest
+                        else
+                            return 32;      //tundra hill
                     }case 'c':  //mountain
-                        return 32;          //tundra mountain
+                        return 33;          //tundra mountain
                 }
             }
             default:
