@@ -405,12 +405,14 @@ public class Random {
                             if (noiseMap[y][x] > 0.95) {
                                 stringMap[y][x] += 'a';             //atoll
                             }
+                            break;
                         }
                         case 'c': {          //desert
                             if (noiseMap[y][x] > 0.98) {
                                 stringMap[y][x] += 'h';             //oasis
                                 //System.out.println("oasis " + noiseMap[y][x]);
                             }
+                            break;
                         }
                         case 'd': {          //grassland
                             if (noiseMap[y][x] > 0.5 && noiseMap[y][x] < 0.75) {
@@ -423,29 +425,39 @@ public class Random {
                                 stringMap[y][x] += 'g';             //marsh
                                 System.out.println("marsh " + noiseMap[y][x]);
                             }
+                            break;
                         }
                         case 'e': {          //plains
                             if (noiseMap[y][x] > 0.5 && noiseMap[y][x] < 0.75){
                                 stringMap[y][x] += 'd';             //forest
                             }
+                            break;
                         }
                         case 'g':{           //tundra
                             if (noiseMap[y][x] > 0.6 && noiseMap[y][x] < 0.75){
                                 stringMap[y][x] += 'd';
                             }
+                            break;
                         }
-                    }
+                    }       //should be length 3 at this point
                 }
             }
         }
 
+        //adds rivers and lakes to the string map
+        for (Point p: lakes)
+            stringMap[p.y][p.x] += 'b';
+
+        for (Point p: riverPoints)
+            if (stringMap[p.y][p.x].length() != 4)      //if its still length 3, which means it dosnt have a lake on it
+                stringMap[p.y][p.x] += 'a';
         for (int Y = 0; Y < map.length; Y++){
             for (int X = 0; X < map[0].length; X++){
-                if (stringMap[Y][X].length() < 3){
+                if (stringMap[Y][X].length() == 3){
                     stringMap[Y][X] += "0";
                 }
             }
-        }
+        }       //should be length 4 at this point
         return stringMap;
     }
 

@@ -82,7 +82,7 @@ public class Hex extends Actor{
         0  a: terrain type;                 flat land,  hill,       mountain
         1  b: terrain;                      ocean,      coast/lake, desert,         grassland,  plains, snow,   tundra
         2  c: terrain features;             atoll,      fallout,    flood plains,   forest,     ice,    jungle, marsh,  oasis
-        3  d: rivers/fresh water;           top right,  right,      bottom right,   bottom left,left,   top left,lake
+        3  d: rivers/fresh water;           River,      lake
         4  e: wonders;                      17 of them
         5  f: food resource;                bananas,    wheat,      cattle,         sheep,      deer,   fish,   stone
         6  g: luxury resource;              25 of them

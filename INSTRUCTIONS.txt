@@ -4,5 +4,5 @@ Controls as of Sept 9 2014
 -left click to select a unit (Currently no units on the map due to testing map generation)
 
 Debug keys:
--"r" to reset the map; it will generate a new map
+-"r" to reset the map; it will generate a new map (WILL USE UP ALOT OF RAM)
 -"k" to zoom out to the max, showing the entire map
