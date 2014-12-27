@@ -62,3 +62,5 @@ build/
 ## OS Specific
 .DS_Store
 META-INF/MANIFEST.MF
+*.properties
+*.xml

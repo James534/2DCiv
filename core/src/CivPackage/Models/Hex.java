@@ -81,8 +81,8 @@ public class Hex extends Actor{
         |letter and name|------------------|a,          b,          c,              d,          e,      f,      g,      h
         0  a: terrain type;                 flat land,  hill,       mountain
         1  b: terrain;                      ocean,      coast/lake, desert,         grassland,  plains, snow,   tundra
-        2  c: terrain features;             atoll,      fallout,    flood plains,   forest,     ice,    jungle, marsh,  oasis
-        3  d: rivers/fresh water;           River,      lake
+        2  d: rivers/fresh water;           River,      lake
+        3  c: terrain features;             atoll,      fallout,    flood plains,   forest,     ice,    jungle, marsh,  oasis
         4  e: wonders;                      17 of them
         5  f: food resource;                bananas,    wheat,      cattle,         sheep,      deer,   fish,   stone
         6  g: luxury resource;              25 of them
@@ -124,7 +124,7 @@ public class Hex extends Actor{
         }else {
             texture = textures[getImageId(id.substring(0, 3))];
         }*/
-        texture = textures[getImageId(id.substring(0, 3))];
+        texture = textures[getImageId(id.substring(0, 4))];
         cost = 1;
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
@@ -139,12 +139,12 @@ public class Hex extends Actor{
     private int getImageId(String id){
         switch (id.charAt(1)){
             case 'a':{                                  //ocean
-                if (id.charAt(2) == 'e')    //ice
+                if (id.charAt(3) == 'e')    //ice
                     return 3;
                 else
                     return 1;               //ocean
             }case 'b':{                                 //shore/lake
-                switch (id.charAt(2)){
+                switch (id.charAt(3)){
                     case '0':
                         return 4;           //shore/lake
                     case 'a':
@@ -159,7 +159,7 @@ public class Hex extends Actor{
                     case 'c':   //mountain
                         return 9;          //desert mountain
                     case 'a':{  //flat land
-                        switch (id.charAt(2)){
+                        switch (id.charAt(3)){
                             case '0':
                                 return 7;    //desert
                             case 'c':
@@ -179,7 +179,7 @@ public class Hex extends Actor{
                     case 'c':   //mountain
                         return 15;           //grassland mountain
                     case 'a':{  //flat land
-                        switch (id.charAt(2)){
+                        switch (id.charAt(3)){
                             case '0':
                                 return 13;   //grassland
                             case 'd':
@@ -193,7 +193,7 @@ public class Hex extends Actor{
                         }
                     }
                     case 'b':{  //hill
-                        switch (id.charAt(2)){
+                        switch (id.charAt(3)){
                             case '0':
                                 return 14;   //grassland hill
                             case 'd':
@@ -210,7 +210,7 @@ public class Hex extends Actor{
                     case 'c':   //mountain
                         return 24;           //plains mountain
                     case 'a':{  //flat land
-                        switch (id.charAt(2)){
+                        switch (id.charAt(3)){
                             case '0':
                                 return 22;   //plains
                             case 'd':
@@ -220,7 +220,7 @@ public class Hex extends Actor{
                         }
                     }
                     case 'b':{  //hill
-                        switch (id.charAt(2)){
+                        switch (id.charAt(3)){
                             case '0':
                                 return 23;   //plains hill
                             case 'd':
@@ -243,12 +243,12 @@ public class Hex extends Actor{
             }case 'g':{                                 //tundra
                 switch (id.charAt(0)){
                     case 'a':{  //flat land
-                        if (id.charAt(2) == 'd')
+                        if (id.charAt(3) == 'd')
                             return 35;      //forest
                         else
                             return 31;      //tundra
                     }case 'b':{ //hill
-                        if (id.charAt(2) == 'd')
+                        if (id.charAt(3) == 'd')
                             return 36;      //forest
                         else
                             return 32;      //tundra hill
@@ -256,13 +256,15 @@ public class Hex extends Actor{
                         return 33;          //tundra mountain
                 }
             }
-            default:
+            default: {
+                System.out.println(pos.x + " " + pos.y + " " + id);
                 return 0;
+            }
         }
     }
 
     public void addRiver(String where){
-        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id.substring(0, 3))]));
+        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id.substring(0, 4))]));
         for (int i = 0; i < where.length(); i++){
             if (where.charAt(i) == '1'){
                 p.drawPixmap(rivers[i], 0, 0);

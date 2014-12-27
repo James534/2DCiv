@@ -88,7 +88,7 @@ public class CameraMovementSystem {
             camZoom = 18;
         }
         //if the zoom is above 8, stop moving the camera after change in zoom, since it takes forever to stop
-        if (camZoom > 8){
+        if (camZoom > 2){
             camVel.x = 0;
             camVel.y = 0;
         }else {
