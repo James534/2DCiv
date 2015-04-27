@@ -101,6 +101,20 @@ public class Hex extends Actor{
                                             landmark, lumber mill, mine, moai, offshore platform, oil well, pasture, plantation, polder, quarry, terrance farm, trading post
      */
 
+    public Hex(int x, int y){
+        pixelPos = new Vector2();
+        pos = new Vector2(x,y);
+        if (pos.y%2 == 0){
+            even = true;
+        }else{
+            even = false;
+        }
+        cost = 1;
+
+        pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
+        pixelPos.y = pos.y * HexHS;
+    }
+
     /**
      *  Creates a new hex
      * @param id    refer to the chart on top for what the id means
