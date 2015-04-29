@@ -30,6 +30,12 @@ public class Hex extends Actor{
 
     private Texture texture;
 
+    public String landType = "";     //Ocean, Shore, Desert, Plains, Grassland
+    public int elevation;       //1 = normal, 2 = hill, 3 = mountain, 0 = water
+    public boolean freshWater;
+    public String river = "000000";
+    public String feature = "";
+
     //File names of the hex tiles
     private static String[] hexNames = {"Hex0",             //0
             "Ocean",    "OceanAtoll",       "OceanIce",     //3
@@ -138,135 +144,140 @@ public class Hex extends Actor{
         }else {
             texture = textures[getImageId(id.substring(0, 3))];
         }*/
-        texture = textures[getImageId(id.substring(0, 4))];
+        //texture = textures[getImageId(id.substring(0, 4))];
         cost = 1;
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
     }
 
+    public void generateTexture(){
+        texture = textures[getImageId()];
+    }
+
     /**
      * Returns the image id of the hex using a bunch of switches
-     * @param id the first 3 characters of the hex id
      * @return  integer of the location in the array which the image is stored in
      */
-    private int getImageId(String id){
-        switch (id.charAt(1)){
-            case 'a':{                                  //ocean
-                if (id.charAt(3) == 'e')    //ice
+    private int getImageId(){
+        switch (landType){
+            case "Ocean":{                                  //ocean
+                if (feature.equals("Ice"))    //ice
                     return 3;
                 else
                     return 1;               //ocean
-            }case 'b':{                                 //shore/lake
-                switch (id.charAt(3)){
-                    case '0':
+            }case "Shore":{                                 //shore/lake
+                switch (feature){
+                    case "":
                         return 4;           //shore/lake
-                    case 'a':
+                    case "Atoll":
                         return 5;           //atoll
-                    case 'e':
+                    case "Ice":
                         return 6;           //ice
                     default:
                         return 4;
                 }
-            }case 'c':{                                 //desert
-                switch (id.charAt(0)){
-                    case 'c':   //mountain
+            }case "Lake":{
+                return 1;
+            }case "Desert":{                                 //desert
+                switch (elevation){
+                    case 3:   //mountain
                         return 9;          //desert mountain
-                    case 'a':{  //flat land
-                        switch (id.charAt(3)){
-                            case '0':
+                    case 1:{  //flat land
+                        switch (feature){
+                            case "":
                                 return 7;    //desert
-                            case 'c':
+                            case "FloodPlains"://'c':
                                 return 12;   //flood plains
-                            case 'h':
+                            case "Oasis":
                                 return 11;   //oasis
                             default:
                                 return 7;
                         }
                     }
-                    case 'b':{  //hill
+                    case 2:{  //hill
                         return 8;          //desert hills
                     }
                 }
-            }case 'd':{                                 //grassland
-                switch (id.charAt(0)){
-                    case 'c':   //mountain
+            }case "Grassland":{                                 //grassland
+                switch (elevation){
+                    case 3:   //mountain
                         return 15;           //grassland mountain
-                    case 'a':{  //flat land
-                        switch (id.charAt(3)){
-                            case '0':
+                    case 1:{  //flat land
+                        switch (feature){
+                            case "":
                                 return 13;   //grassland
-                            case 'd':
+                            case "Forest":
                                 return 19;   //forest
-                            case 'f':
+                            case "Jungle":
                                 return 20;   //jungle
-                            case 'g':
+                            case "Marsh":
                                 return 21;   //marsh
                             default:
                                 return 13;
                         }
                     }
-                    case 'b':{  //hill
-                        switch (id.charAt(3)){
-                            case '0':
+                    case 2:{  //hill
+                        switch (feature){
+                            case "":
                                 return 14;   //grassland hill
-                            case 'd':
+                            case "Forest":
                                 return 18;   //forest
-                            case 'f':
+                            case "Jungle":
                                 return 19;   //jungle
                             default:
                                 return 14;
                         }
                     }
                 }
-            }case 'e':{                                 //plains
-                switch (id.charAt(0)){
-                    case 'c':   //mountain
+            }case "Plains":{                                 //plains
+                switch (elevation){
+                    case 3:   //mountain
                         return 24;           //plains mountain
-                    case 'a':{  //flat land
-                        switch (id.charAt(3)){
-                            case '0':
+                    case 1:{  //flat land
+                        switch (feature){
+                            case "":
                                 return 22;   //plains
-                            case 'd':
+                            case "Forest":
                                 return 26;   //forest
                             default:
                                 return 22;
                         }
                     }
-                    case 'b':{  //hill
-                        switch (id.charAt(3)){
-                            case '0':
+                    case 2:{  //hill
+                        switch (feature){
+                            case "":
                                 return 23;   //plains hill
-                            case 'd':
+                            case "Forest":
                                 return 27;   //forest
                             default:
                                 return 23;
                         }
                     }
                 }
-            }case 'f':{                                 //snow
-                switch (id.charAt(0)){
-                    case 'a':{  //flat land
+            }case "Snow":{                                 //snow
+                switch (elevation){
+                    case 1:{  //flat land
                         return 29;
-                    }case 'b':{ //hill
+                    }case 2:{ //hill
                         return 30;
-                    }case 'c':{ //mountain
+                    }case 3:{ //mountain
                         return 31;
                     }
                 }
-            }case 'g':{                                 //tundra
-                switch (id.charAt(0)){
-                    case 'a':{  //flat land
-                        if (id.charAt(3) == 'd')
+            }case "Tundra":{                                 //tundra
+                switch (elevation){
+                    case 1:{  //flat land
+                        if (feature.equals("Forest"))
                             return 35;      //forest
                         else
                             return 31;      //tundra
-                    }case 'b':{ //hill
-                        if (id.charAt(3) == 'd')
+                    }case 2:{ //hill
+                        if (feature.equals("Forest"))
                             return 36;      //forest
                         else
                             return 32;      //tundra hill
-                    }case 'c':  //mountain
+                    }case 3:  //mountain
                         return 33;          //tundra mountain
                 }
             }
@@ -278,7 +289,8 @@ public class Hex extends Actor{
     }
 
     public void addRiver(String where){
-        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId(id.substring(0, 4))]));
+        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId()]));
+        river = where;
         for (int i = 0; i < where.length(); i++){
             if (where.charAt(i) == '1'){
                 p.drawPixmap(rivers[i], 0, 0);
