@@ -5,6 +5,7 @@ import CivPackage.Models.Hex;
 import CivPackage.Point;
 import CivPackage.Random;
 import CivPackage.Systems.TerrainGenerationSystem;
+import CivPackage.Util.Capsule;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -19,8 +20,10 @@ public class GameMap {
         this.xSize = xSize;
         this.ySize = ySize;
 
+        Array<Capsule> sp = new Array<>();
+        sp.add(new Capsule("Shore", 4));
         Random r = new Random(1047155);
-        map = r.generateHexMap(xSize, ySize);
+        map = r.generateHexMap(xSize, ySize, sp);
         Array<Point> startingPoints = r.getStartingPoints();
         /*TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
@@ -39,7 +42,10 @@ public class GameMap {
     public void reset(){
         Random r = new Random((int)(Math.random()*1047155));
         map = null;
-        map = r.generateHexMap(xSize, ySize);
+
+        Array<Capsule> sp = new Array<>();
+        sp.add(new Capsule("Shore", 4));
+        map = r.generateHexMap(xSize, ySize, sp);
     }
 
     public void addUnit(Entity unit){

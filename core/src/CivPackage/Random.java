@@ -1,6 +1,7 @@
 package CivPackage;
 
 import CivPackage.Models.Hex;
+import CivPackage.Util.Capsule;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
@@ -25,7 +26,7 @@ public class Random {
      * @param ySize
      * @return
      */
-    public Hex[][] generateHexMap(int xSize, int ySize){
+    public Hex[][] generateHexMap(int xSize, int ySize, Array<Capsule> sp){
 
         /**
          * From MapGenerator.lua that civ5 is actually using, the generating in order is:
@@ -49,7 +50,7 @@ public class Random {
         generateTerrain(map);                               //generates the terrain
         generateWaterBodies(map);
         generateFeatures(map);
-        generateStartPlots(map);
+        generateStartPlots(map, sp);
 
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
@@ -64,12 +65,23 @@ public class Random {
         return map;
     }
 
-    public Array<Point> getStartingPoints(){
-        return startingPoints;
-    }
+    public Array<Point> getStartingPoints(){return startingPoints;}
 
 
-    private void generateStartPlots(Hex[][] map){
+    private void generateStartPlots(Hex[][] map, Array<Capsule> sp){
+        startingPoints = new Array<>();
+        for (Capsule c: sp){
+            switch (c.s){
+                case "Shore":{
+                    Array<Point> shore = getShore(map);
+                    for (int i = 0; i < c.n; i++){
+                        int n = random.nextInt(shore.size);
+                        startingPoints.add(shore.get(n));
+                    }
+                }
+            }
+        }
+
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++){
 
@@ -381,6 +393,29 @@ public class Random {
         return map;
     }
 
+    private Array<Point> getShore(Hex[][] map){
+        int temp;
+        //gets the shoreline
+        Array<Point> shore = new Array<Point>();
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++){
+                if (map[y][x].elevation != 0){      //shore
+                    temp = 0;
+                    for (Point p : getNeighbours(x, y)) {
+                        if (existsAt(map, p.x, p.y) && map[y][x].landType.equals("Shore")) {
+                            //checks its neighbours for a shore, if there is one, add it to the shore list
+                            temp++;
+                        }
+                    }
+                    if (temp > 2){                      //if there are more than 2 shore tiles neighbouring this tile, add it to the shore lists
+                        shore.add(new Point(x, y));
+                    }
+                }
+            }
+        }
+        return shore;
+    }
+
     /**
      * Generates the lakes and rivers of the map. <br>
      *     For now, the rivers will be stored in another array riverPoints
@@ -407,7 +442,6 @@ public class Random {
                 }
             }
         }
-
         /* --------------------------- Lakes and Rivers ------------------------ */
         Array<Point> lakes = new Array<Point>();
         //checks for already existing lakes
