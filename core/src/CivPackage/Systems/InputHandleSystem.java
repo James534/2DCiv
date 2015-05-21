@@ -5,6 +5,7 @@ import CivPackage.Map.GameMap;
 import CivPackage.Screens.GameScreen;
 import CivPackage.Systems.CameraMovementSystem;
 import CivPackage.Systems.UISystem;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -58,7 +59,11 @@ public class InputHandleSystem implements InputProcessor{
             case Input.Keys.R:          //debugging purposes
                 map.reset();
                 break;
+            case 68:            //~ key, turns on debug mode
+                GameScreen.setDebug(!GameScreen.getDebug());
+                System.out.println("Debug mode: " + GameScreen.getDebug());
         }
+        //System.out.println(keycode);
         return false;
     }
 

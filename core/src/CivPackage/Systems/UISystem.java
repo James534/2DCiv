@@ -3,11 +3,10 @@ package CivPackage.Systems;
 import CivPackage.GameProject;
 import CivPackage.Map.GameMap;
 import CivPackage.Models.Hex;
+import CivPackage.Util.Point;
+import CivPackage.Screens.GameScreen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -27,6 +26,7 @@ public class UISystem {
     private Stage stage;
     private PathfindingSystem pfs;
     private Hex selected;       //currently selected hex
+    public Hex debugSelect;
     private Array<Hex> surrounding;
     private Array<Hex> path;
     private Array<Integer> turns;
@@ -35,19 +35,26 @@ public class UISystem {
     private Skin skin;
     private BitmapFont font;
 
+    //debug stuff
+    private boolean debug = false;
+    private Table debugTable;
+    private TextButton debugOutput;
+
     public UISystem(GameMap map, UnitManagementSystem ums, PlayerSystem playerSystem, Stage stage){
         this.map = map;
         this.ums = ums;
         this.stage = stage;
         this.playerSystem = playerSystem;
         pfs = new PathfindingSystem(map);
-        surrounding = new Array<Hex>();
-        path = new Array<Hex>();
-        turns = new Array<Integer>();
+        surrounding = new Array<>();
+        path = new Array<>();
+        turns = new Array<>();
 
         skin = new Skin(Gdx.files.internal(GameProject.fileName + "uiskin.json"));
         table = new Table();    //add skin
         table.setPosition(50,650);
+        debugTable = new Table();
+        debugTable.setPosition(500, 300);
         font = new BitmapFont();
         createUi();
     }
@@ -61,6 +68,9 @@ public class UISystem {
         TextButton gold = new TextButton("Gold: " + playerSystem.getGold() + "(+" + playerSystem.getIncome() +")", skin);
         table.add (gold).left().top();
 
+        //debug stuff
+        debugOutput = new TextButton("", skin);
+        debugTable.add(debugOutput);
     }
 
     /**
@@ -68,21 +78,25 @@ public class UISystem {
      * @param h; Hex to move to
      */
     public void setPath(Hex h){
-        turns.clear();
-        if (h != null) {
-            path = pfs.getPath(selected.getMapX(), selected.getMapY(), h.getMapX(), h.getMapY());   //gets the path
-            if (path.size > 0)  //gets rid of the current tile from being selected in the path
-                {path.pop();}
+        if (selected != null && selected.getUnit() != null) {
+            turns.clear();
+            if (h != null) {
+                path = pfs.getPath(selected.getMapX(), selected.getMapY(), h.getMapX(), h.getMapY());   //gets the path
+                if (path.size > 0)  //gets rid of the current tile from being selected in the path
+                {
+                    path.pop();
+                }
 
-            int maxMove = selected.getUnit().getMaxMovement();
-            int move = selected.getUnit().getMovement();
-            int turn = 1;
-            for (int i = path.size-1; i >= 0; i--){
-                move -= path.get(i).getCost();
-                turns.add (turn);
-                if (move <= 0){
-                    move = maxMove;
-                    turn++;
+                int maxMove = selected.getUnit().getMaxMovement();
+                int move = selected.getUnit().getMovement();
+                int turn = 1;
+                for (int i = path.size - 1; i >= 0; i--) {
+                    move -= path.get(i).getCost();
+                    turns.add(turn);
+                    if (move <= 0) {
+                        move = maxMove;
+                        turn++;
+                    }
                 }
             }
         }
@@ -96,6 +110,19 @@ public class UISystem {
         surrounding.clear();
         path.clear();
         turns.clear();
+
+        debugSelect = null;
+    }
+
+    public void setDebug(boolean b){
+        debug = b;
+        if (debug) {
+            debugTable.setPosition(900, 500);
+            stage.addActor(debugTable);
+        }
+        else {
+            debugTable.remove();
+        }
     }
 
     /**
@@ -104,16 +131,19 @@ public class UISystem {
      */
     public void selectHex(Hex selected){
         //if theres nothing selected, and the selection is valid, and there is a unit on that hex, and that unit can move
-        if (this.selected == null && selected != null && selected.getUnit() != null && selected.getUnit().getMovement() > 0) {
-            this.selected = selected;
-            System.out.println("Unit: " + selected.getUnit());
+        if (this.selected == null && selected != null){
+            if (selected.getUnit() != null && selected.getUnit().getMovement() > 0) {
 
-            int x = selected.getMapX();
-            int y = selected.getMapY();
-            surrounding = pfs.getHexInRange(x, y, map.getHex(x,y).getUnit().getMovement());
-            //gets rid of the current tile on the selection
-            surrounding.removeValue(map.getHex(x,y), false);
-        }else if (selected != this.selected){ /** ----- Not sure if this should be in UISystem or UnitManagementSystem **/
+                this.selected = selected;
+                System.out.println("Unit: " + selected.getUnit());
+
+                int x = selected.getMapX();
+                int y = selected.getMapY();
+                surrounding = pfs.getHexInRange(x, y, map.getHex(x, y).getUnit().getMovement());
+                //gets rid of the current tile on the selection
+                surrounding.removeValue(map.getHex(x, y), false);
+            }
+        }else if (selected != this.selected){ // ----- Not sure if this should be in UISystem or UnitManagementSystem
             //if the surrounding tile contains the newly selected tile, and its not the same tile
             if (surrounding.contains(selected,false)){
                 float d = 0;
@@ -139,8 +169,25 @@ public class UISystem {
             cancelSelection();
         }
         path.clear();
+        if (GameScreen.getDebug()){
+            debugSelect = selected;
+            if (debugSelect != null) {
+                /*System.out.println("----------------------------");
+                System.out.println("x: " + debugSelect.getMapX() + " y: " + debugSelect.getMapY());
+                System.out.println("Landtype: " + debugSelect.landType);
+                System.out.println("Elevation: " + debugSelect.elevation);
+                System.out.println("Feature: " + debugSelect.feature);*/
+                String s = "x: " + debugSelect.getMapX() + " y: " + debugSelect.getMapY() + "\n"
+                        + "Landtype: " + debugSelect.landType + "\n"
+                        + "Elevation: " + debugSelect.elevation + "\n"
+                        + "Feature: " + debugSelect.feature;
+                debugOutput.setText(s);
+                //System.out.println("Has Fresh water " + debugSelect.freshWater);
+            }
+        }
     }
 
+    public boolean getDebug(){return debug;}
     public Hex getSelectedHex(){return selected;}
     public Array<Hex> getSurrounding(){return surrounding;}
     public Array<Hex> getPath(){return path;}

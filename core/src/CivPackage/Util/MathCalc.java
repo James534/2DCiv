@@ -1,4 +1,4 @@
-package CivPackage;
+package CivPackage.Util;
 
 import CivPackage.Models.Hex;
 import com.badlogic.gdx.math.Vector2;
@@ -32,6 +32,12 @@ public class MathCalc {
         pixelPos.x = pos.x * Hex.HexD + (pos.y %2)*Hex.HexR;
         pixelPos.y = pos.y * Hex.HexHS;
         return pixelPos;
+    }
+    public static Point getPixelPos (Point pos){
+        return new Point(
+                pos.x * Hex.HexD + (pos.y %2)*Hex.HexR,
+                pos.y * Hex.HexHS
+        );
     }
 
     /**

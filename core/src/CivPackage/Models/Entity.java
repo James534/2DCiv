@@ -1,6 +1,6 @@
 package CivPackage.Models;
 
-import CivPackage.MathCalc;
+import CivPackage.Util.MathCalc;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;

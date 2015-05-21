@@ -1,4 +1,4 @@
-package CivPackage;
+package CivPackage.Util;
 
 /**
  * A class to hold an x and y position of a point

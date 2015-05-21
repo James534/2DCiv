@@ -1,7 +1,6 @@
 package CivPackage.Models;
 
 import CivPackage.GameProject;
-import CivPackage.MathCalc;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -44,7 +43,8 @@ public class Hex extends Actor{
             "Grassland","GrasslandHills",   "GrasslandMountain","GrasslandFallout", "GrasslandForest",  "GrasslandHillForest","GrasslandHillJungle","GrasslandJungle", "GrasslandMarsh",  //21
             "Plains",   "PlainsHills",      "PlainsMountain",   "PlainsFallout",    "PlainsForest",     "PlainsHillForest",     //27
             "Snow",     "SnowHills",        "SnowMountain", //30
-            "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest"
+            "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest",     //36
+            "Special1"
     };
     static{
         //assembles the file name into the full file name, to avoid repeating code above
@@ -70,7 +70,8 @@ public class Hex extends Actor{
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River6.png"))
     };
 
-    public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/256/SelectedHex.png");
+    public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/256/Selected1.png");
+    public static final Texture SELECTED2 = new Texture(GameProject.fileName + "Hex/256/Selected2.png");
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
@@ -151,8 +152,14 @@ public class Hex extends Actor{
         pixelPos.y = pos.y * HexHS;
     }
 
-    public void generateTexture(){
+    /**
+     * Call this method to update the tile after changes
+     */
+    public void update(){
         texture = textures[getImageId()];
+        if (elevation == 3){
+            walkable = false;
+        }
     }
 
     /**
@@ -280,6 +287,8 @@ public class Hex extends Actor{
                     }case 3:  //mountain
                         return 33;          //tundra mountain
                 }
+            }case "Special":{
+                return 37;
             }
             default: {
                 System.out.println(pos.x + " " + pos.y + " " + id);

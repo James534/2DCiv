@@ -2,6 +2,9 @@ package CivPackage;
 
 import CivPackage.Models.Hex;
 import CivPackage.Util.Capsule;
+import CivPackage.Util.DebugClass;
+import CivPackage.Util.MathCalc;
+import CivPackage.Util.Point;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
@@ -54,7 +57,7 @@ public class Random {
 
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
-                map[y][x].generateTexture();
+                map[y][x].update();
             }
         }
         //adding rivers
@@ -62,6 +65,11 @@ public class Random {
             map[p.y][p.x].addRiver(p.data);
         }
         //adding resources
+
+
+        //debug stuff
+        DebugClass.startingPoints = startingPoints;
+
         return map;
     }
 
@@ -69,24 +77,68 @@ public class Random {
 
 
     private void generateStartPlots(Hex[][] map, Array<Capsule> sp){
+        DebugClass.generateLog("Generate Starting Points");
         startingPoints = new Array<>();
         for (Capsule c: sp){
             switch (c.s){
                 case "Shore":{
                     Array<Point> shore = getShore(map);
+                    //System.out.println (shore.size);
                     for (int i = 0; i < c.n; i++){
+                        if (shore.size == 0){
+                            DebugClass.generateLog("Failed to generate all starting points");
+                            break;
+                        }
                         int n = random.nextInt(shore.size);
-                        startingPoints.add(shore.get(n));
+                        Point t = shore.removeIndex(n);
+                        startingPoints.add(t);
+                        //map[t.x][t.y].landType = "Special";
+
+                        //remove neighbour tiles from the list
+                        Array<Point> toRemove = new Array<>();
+                        for (Point p: shore){
+                            if (MathCalc.distanceBetween(p.x, p.y, t.x, t.y) < 5){
+                                toRemove.add(p);
+                            }
+                        }
+                        shore.removeAll(toRemove, true);
                     }
+
                 }
             }
         }
+
 
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++){
 
             }
         }
+    }
+
+    private Array<Point> getShore(Hex[][] map){
+        //gets the shoreline
+        Array<Point> shore = new Array<>();
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++){
+                if (map[y][x].elevation == 1){      //only flat land
+                    boolean isShore = false, isLand = false;
+                    //map[y][x].landType = "Special";
+                    for (Point p : getNeighbours(x, y)) {
+                        if (existsAt(map, p.x, p.y)) {
+                            if (map[p.y][p.x].landType.equals("Shore"))
+                                isShore = true;
+                            else if (map[p.y][p.x].elevation != 0)
+                                isLand = true;
+                            if (isLand && isShore)      //adds the tile to the shore list iff there is shore and land around it
+                                shore.add(new Point(x, y));
+                            //map[y][x].landType = "Tundra";
+                        }
+                    }
+                }
+            }
+        }
+        return shore;
     }
 
     /**
@@ -237,7 +289,7 @@ public class Random {
                                 if (counter > max){
                                     max = counter;
                                     mostOccurredTerrain = lastTerrain;
-                                    System.out.println("LAST TERRAIN " + lastTerrain);
+                                    DebugClass.generateLog("LAST TERRAIN " + lastTerrain);
                                     counter = 0;
                                 }
                             }else{
@@ -292,9 +344,6 @@ public class Random {
                     //adaptation http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
                     //using y as temperature, hottest in the middle of the map, and the z scores as precipitation
 
-                    if (x == 12 && y == 11){
-                        System.out.println("FAIL " + map[y][x]);
-                    }
                     if (temp < .25){
                         if (climateMap[y][x] < -0.25) {
                             intClimateMap[y][x] = 30;       //high temp, low rain, desert
@@ -393,28 +442,7 @@ public class Random {
         return map;
     }
 
-    private Array<Point> getShore(Hex[][] map){
-        int temp;
-        //gets the shoreline
-        Array<Point> shore = new Array<Point>();
-        for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map[0].length; x++){
-                if (map[y][x].elevation != 0){      //shore
-                    temp = 0;
-                    for (Point p : getNeighbours(x, y)) {
-                        if (existsAt(map, p.x, p.y) && map[y][x].landType.equals("Shore")) {
-                            //checks its neighbours for a shore, if there is one, add it to the shore list
-                            temp++;
-                        }
-                    }
-                    if (temp > 2){                      //if there are more than 2 shore tiles neighbouring this tile, add it to the shore lists
-                        shore.add(new Point(x, y));
-                    }
-                }
-            }
-        }
-        return shore;
-    }
+
 
     /**
      * Generates the lakes and rivers of the map. <br>
@@ -457,7 +485,7 @@ public class Random {
                         lakes.add(new Point (x, y));
                         map[y][x].landType = "Lake";      //changes the tile to be a lake tile
                         map[y][x].elevation = 0;
-                        System.out.println ("Already existing lake at " + x + " " + y);
+                        DebugClass.generateLog("Already existing lake at " + x + " " + y);
                     }
                 }
             }
@@ -484,7 +512,7 @@ public class Random {
                     map[tempY][tempX].landType = "Lake";      //changes the tile to be a lake tile
                     map[tempY][tempX].elevation = 0;
                     lakes.add(new Point (tempX, tempY));
-                    System.out.println("Added lake to " + tempX + " " + tempY);
+                    DebugClass.generateLog("Added lake to " + tempX + " " + tempY);
                     numLakes--;
                 }
             }
@@ -545,7 +573,7 @@ public class Random {
         }
 
         if (numRivers > 0){
-            System.out.println ("Failed to generate " + numRivers + " rivers");
+            DebugClass.generateLog ("Failed to generate " + numRivers + " rivers");
         }
 
         //since the lakes were added to the string map as they were being generated, now i add the rivers

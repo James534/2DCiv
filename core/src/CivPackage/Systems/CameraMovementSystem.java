@@ -1,6 +1,5 @@
 package CivPackage.Systems;
 
-import CivPackage.MathCalc;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
@@ -117,7 +116,7 @@ public class CameraMovementSystem {
         //if the camera is moving to a hex, slowly slow it down
         if (moveTo){
             if (camSpeed.x > 0){
-                camSpeed.x -= friction.x;
+                camSpeed.x -= (friction.x * camZoom * camZoom);
                 if (camSpeed.x <= 0){
                     moveTo = false;
                     camSpeed.x = 0;
@@ -136,12 +135,12 @@ public class CameraMovementSystem {
         //slows down the camera if theres no buttons being pressed
         if (pressX == false) {
             if (camVel.x > 0) {
-                camVel.x -= 1;
+                camVel.x -= 1 * camZoom/2;
                 if (camVel.x < 0){   //resets the speed if it goes below 0
                     camVel.x = 0;
                 }
             } else if (camVel.x < 0) {
-                camVel.x += 1;
+                camVel.x += 1 * camZoom/2;
                 if (camVel.x > 0){
                     camVel.x = 0;
                 }
@@ -152,12 +151,12 @@ public class CameraMovementSystem {
         }
         if (pressY == false) {
             if (camVel.y > 0) {
-                camVel.y -= 1;
+                camVel.y -= 1 * camZoom/2;
                 if (camVel.y < 0){   //resets the speed if it goes below 0
                     camVel.y = 0;
                 }
             } else if (camVel.y < 0) {
-                camVel.y += 1;
+                camVel.y += 1 * camZoom/2;
                 if (camVel.y > 0){
                     camVel.y = 0;
                 }

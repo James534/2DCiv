@@ -2,9 +2,8 @@ package CivPackage.Map;
 
 import CivPackage.Models.Entity;
 import CivPackage.Models.Hex;
-import CivPackage.Point;
+import CivPackage.Util.Point;
 import CivPackage.Random;
-import CivPackage.Systems.TerrainGenerationSystem;
 import CivPackage.Util.Capsule;
 import com.badlogic.gdx.utils.Array;
 
@@ -16,15 +15,17 @@ public class GameMap {
     private Hex[][] map;
     public final int xSize, ySize;
 
+    public Array<Point> startingPoints;
+
     public GameMap(int xSize, int ySize){
         this.xSize = xSize;
         this.ySize = ySize;
 
         Array<Capsule> sp = new Array<>();
-        sp.add(new Capsule("Shore", 4));
+        sp.add(new Capsule("Shore", 12));
         Random r = new Random(1047155);
         map = r.generateHexMap(xSize, ySize, sp);
-        Array<Point> startingPoints = r.getStartingPoints();
+        startingPoints = r.getStartingPoints();
         /*TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);
@@ -44,10 +45,10 @@ public class GameMap {
         map = null;
 
         Array<Capsule> sp = new Array<>();
-        sp.add(new Capsule("Shore", 4));
+        sp.add(new Capsule("Shore", 12));
         map = r.generateHexMap(xSize, ySize, sp);
+        startingPoints = r.getStartingPoints();
     }
-
     public void addUnit(Entity unit){
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
     }

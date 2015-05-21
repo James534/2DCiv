@@ -35,6 +35,7 @@ public class GameScreen implements Screen{
     private UISystem uiSystem;
     private PlayerSystem playerSystem;
 
+    private static boolean debug = false;
 
     public GameScreen(){
         gameMap = new GameMap(65,65);
@@ -67,6 +68,12 @@ public class GameScreen implements Screen{
         //unitManagementSystem.createUnit(1, 5, 5);
     }
 
+
+    public static void setDebug(boolean d){debug = d;}
+    public static boolean getDebug(){
+        return debug;
+    }
+
     @Override
     public void hide() {
 
@@ -90,6 +97,9 @@ public class GameScreen implements Screen{
         mapRenderer.render();
         unitRenderer.render();
         uiRenderer.render();
+        if (debug != uiSystem.getDebug()){
+            uiSystem.setDebug(debug);
+        }
     }
 
 
