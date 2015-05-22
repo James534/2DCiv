@@ -168,6 +168,7 @@ public class Random {
             String wonderName = wonders[toGenerate[i]];
             DebugClass.generateLog("Generating: " + wonderName);
             Object[] tempCapsule = (Object[])hm.get(wonderName);
+            if (tempCapsule == null) continue;      //so it dosnt crash when it tries to generate a wonder i havent implemented
             String[] landToLookFor = (String[]) tempCapsule[0];
             Capsule[] toFilter = (Capsule[])tempCapsule[1];
             Array<Hex> list = filterLand(map, getLandTypes(map, landToLookFor), toFilter);
@@ -819,6 +820,21 @@ public class Random {
                     case "Shore": {          //coast
                         if (noiseMap[y][x] > 0.95) {
                             map[y][x].feature = "Atoll";             //atoll
+                        }
+                        if (temp > .8){
+                            if (temp > .95)
+                                map[y][x].feature = "Ice";
+                            else if (noiseMap[y][x] > (.7 - 10*(temp-.8)))
+                                map[y][x].feature = "Ice";
+                        }
+                        break;
+                    }
+                    case "Ocean":{
+                        if (temp > .8){
+                            if (temp > .95)
+                                map[y][x].feature = "Ice";
+                            else if (noiseMap[y][x] > (.7 - 10*(temp-.8)))
+                                map[y][x].feature = "Ice";
                         }
                         break;
                     }
