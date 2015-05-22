@@ -34,6 +34,7 @@ public class Hex extends Actor{
     public boolean freshWater;
     public String river = "000000";
     public String feature = "";
+    private String wonder = "";     //private because then it has to call a function, which allows me to update this hex' data
 
     //File names of the hex tiles
     private static String[] hexNames = {"Hex0",             //0
@@ -69,6 +70,8 @@ public class Hex extends Actor{
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River5.png"))
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River6.png"))
     };
+
+    public static final Texture BC = new Texture(GameProject.fileName + "Hex/256/Wonders/BC.png");
 
     public static final Texture SELECTED = new Texture(GameProject.fileName + "Hex/256/Selected1.png");
     public static final Texture SELECTED2 = new Texture(GameProject.fileName + "Hex/256/Selected2.png");
@@ -152,13 +155,26 @@ public class Hex extends Actor{
         pixelPos.y = pos.y * HexHS;
     }
 
+    public void makeWonder(String s){
+        wonder = s;
+        switch (s){
+            case "BC":
+                elevation = 3;
+                walkable = false;
+        }
+    }
+
     /**
      * Call this method to update the tile after changes
      */
     public void update(){
-        texture = textures[getImageId()];
-        if (elevation == 3){
-            walkable = false;
+        if (wonder.equals("")) {
+            texture = textures[getImageId()];
+            if (elevation == 3) {
+                walkable = false;
+            }
+        }else{
+            texture = BC;
         }
     }
 
@@ -265,11 +281,11 @@ public class Hex extends Actor{
             }case "Snow":{                                 //snow
                 switch (elevation){
                     case 1:{  //flat land
-                        return 29;
+                        return 28;
                     }case 2:{ //hill
-                        return 30;
+                        return 29;
                     }case 3:{ //mountain
-                        return 31;
+                        return 30;
                     }
                 }
             }case "Tundra":{                                 //tundra
@@ -308,6 +324,7 @@ public class Hex extends Actor{
         texture = new Texture(p);
     }
 
+    public String getWonder(){return wonder;}
     public Texture getTexture(){
         return texture;
     }

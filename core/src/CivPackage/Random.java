@@ -8,6 +8,8 @@ import CivPackage.Util.Point;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.HashMap;
+
 /**
  * Created by Lu on 2014-07-12.
  */
@@ -37,7 +39,7 @@ public class Random {
          *      -terrain/climate (grassland, plains, desert, tundra, snow)  (yes)
          *      -rivers and then lakes                                      (reversed; lakes first, not implemented in the hexes in this step)
          *      -features (forest, jungle, etc)                             (need to improve)
-         *      -starting plots (starting points > wonders > resources)     (no)
+         *      -starting plots (starting points > wonders > resources)     (1/3)
          *      -goodies (???)                                              (no?)
          */
 
@@ -54,6 +56,7 @@ public class Random {
         generateWaterBodies(map);
         generateFeatures(map);
         generateStartPlots(map, sp);
+        generateWonders(map);
 
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
@@ -75,6 +78,183 @@ public class Random {
 
     public Array<Point> getStartingPoints(){return startingPoints;}
 
+
+    private void generateWonders(Hex[][] map){
+        /*
+        -1  BC   -Barringer Crater: Must be in tundra or desert; cannot be adjacent to grassland; can be adjacent to a maximum of 2 mountains and a maximum of 4 hills and mountains; avoids oceans; becomes mountain
+        -2  Fuji -Mt. Fuji: Must be in grass or plains; cannot be adjacent to tundra, desert, marsh, or mountains; can be adjacent to a maximum of 2 hills; avoids oceans and the biggest landmass; becomes grassland and mountain
+        -3  Mesa -Grand Mesa: Must be in plains, desert, or tundra, and must be adjacent to at least 2 hills; cannot be adjacent to grass; can be adjacent to a maximum of 2 mountains; avoids oceans; becomes mountain
+        -4  GBR  -Great Barrier Reef: Specifics currently unknown (needs more scrutiny, as the XML file just says "EligibilityMethod" and "TileChangesMethodNumber" as 1; However, by my observations, it takes 2 tiles within shallow waters near the coast)
+        -5  Krak -Krakatoa: Must spawn in the ocean next to at least 1 shallow water tile; cannot be adjacent to ice; changes tiles around it to shallow water; becomes grassland and mountain
+        -6  RoG  -Rock of Gibraltar: Specifics currently unknown (like the Great Barrier Reef, it has "EligibilityMethod" and "TileChangesMethodNumber" as 2; However, from my observations it appears in shallow waters near the coast)
+        -7  OF   -Old Faithful: Must be adjacent to at least 3 hills and mountains; cannot be adjacent to more than 4 mountains, and cannot be adjacent to more than 3 desert or 3 tundra tiles; avoids oceans; becomes mountain
+        -8  CdP  -Cerro de Potosi: Must be adjacent to at least 1 hill; avoids oceans; becomes mountain
+        -9  ED   -El Dorado: Must be next to at least 1 jungle tile; avoids oceans; becomes flatland plains
+        -10 FoY  -Fountain of Youth: Avoids oceans; becomes flatland plains
+        -11 SP   -Sri Pada: Must be in a grass or plains; cannot be adjacent to desert, tundra, or marshes; can be adjacent to a maximum of 2 mountain tiles; avoids oceans and the biggest landmass; becomes mountain
+        -12 MSin -Mt. Sinai: Must be in plains or desert, and must be adjacent to a minimum of 3 desert tiles; cannot be adjacent to tundra, marshes, or grassland; avoids oceans; becomes mountain
+        -13 Kail -Mt. Kailash: Must be in plains or grassland, and must be adjacent to at least 4 hills and/or mountains; cannot be adjacent to marshes; can be adjacent to a maximum of 1 desert tile; avoids oceans; becomes mountain
+        -14 Ulu  -Uluru: Must be in plains or desert, and must be adjacent to a minimum of 3 plains tiles; cannot be adjacent to grassland, tundra, or marshes; avoids oceans; becomes mountain
+        -15 Vic  -Lake Victoria: Avoids oceans; becomes flatland plains
+        -16 Kili -Mt. Kilimanjaro: Must be in plains or grassland, and must be adjacent to at least 2 hills; cannot be adjacent to more than 2 mountains; avoids oceans; becomes mountain
+        -17 MoS  -Mines of Solomon: Cannot be adjacent to more than 2 mountains; avoids oceans; becomes flatland plains*/
+        //http://gaming.stackexchange.com/questions/95095/do-natural-wonders-spawn-more-closely-to-city-states
+
+
+        //should check to see if land is big enough, but to be implemented later
+
+        //64*64 ~ 80*52, which is standard size; 4 wonders
+        String[] wonders = {"BC", "Fuji", "Mesa", "GBR", "Krak", "RoG", "OF", "CdP", "ED", "FoY", "SP", "MSin", "Kail", "Ulu", "Vic", "Kili", "MoS"};
+        int[] toGenerate = {-1, -1, -1, -1};
+        int temp = 0;
+        while (true){       //pick 4 numbers that are disntenct and store them in the toGenerate array
+            int n = random.nextInt(wonders.length);
+            boolean regen = false;
+            for (int i = 0; i < toGenerate.length; i++){
+                if (toGenerate[i] == n){
+                    regen = true;
+                }
+            }
+            if (!regen){
+                toGenerate[temp] = n;
+                temp++;
+                if (temp == toGenerate.length){
+                    break;
+                }
+            }
+        }
+        Array<String> regenerate = new Array<>();
+        for (int i = 0; i < toGenerate.length; i++){
+            switch (wonders[toGenerate[i]]){
+                case "BC":{
+                    String[] landToLookFor = {"Tundra", "Desert"};       //since java dosnt allow array initalization in method calls
+                    Capsule[] toFilter = {new Capsule("Grassland", 0), new Capsule("Water", 0), new Capsule("Mountains", 2), new Capsule("Hills", 2)};
+                    Array<Hex> list = filterLand(map, getLandTypes(map, landToLookFor), toFilter);
+                    Array<Hex> validPositions = new Array<>();
+                    for (Hex h : list) {                    //checks distance between possible point
+                        checkList:{
+                            if (!h.getWonder().equals("")) //if there is already a wonder at that point
+                                continue;                  //skip this tile
+                            for (Point p : startingPoints) {    //and every starting point
+                                if (MathCalc.distanceBetween(p.x, p.y, h.getMapX(), h.getMapY()) < 6) { //if they are not enough apart
+                                    break checkList;                                                    //this hex is not a valid position
+                                }
+                            }
+                            validPositions.add(h);
+                        }
+                    }
+                    if (validPositions.size > 0) {
+                        Hex h = validPositions.get(random.nextInt(validPositions.size));
+                        map[h.getMapY()][h.getMapX()].makeWonder("BC");    //make a wonder there
+                        DebugClass.generateLog("BC generated at: " + h.getMapX() + " " + h.getMapY());
+                    }else{
+                        regenerate.add("BC");
+                        DebugClass.generateLog("Failed to generate BC");
+                    }
+                    break;
+                }
+
+            }
+
+        }
+    }
+
+    /**
+     * Filters the _list_ by checking the map for what to filter out in the _filters_ array
+     * String of capsule = what to look for (landtype)
+     * int of capsule = how many of them max can exist around the tile(0-5)
+     * @param map
+     * @param list
+     * @param filters       check for elevation: "Hills", "Mouintains", "Water";
+     *                      check for features: string start with f;
+     *                      check for landtype: normal landtype string
+     * @return
+     */
+    private Array<Hex> filterLand(Hex[][] map, Array<Point> list, Capsule[] filters){
+        Array<Hex> l = new Array<>();
+
+        class innerMethod{  //hack to use functions in a function, shortens code
+            /**
+             * Returns True if this hex' neighbours' elevation are less than max
+             * @param map
+             * @param p            = point to check neighbours around
+             * @param level        = elevation
+             * @param max          = max occurrence (1-5)
+             * @return
+             */
+            public boolean checkNeighbourHeight(Hex[][] map, Point p, int level, int max){
+                //p = point to check, level = elevation, max = max occurrence
+                int count = 0;
+                for (Point n : getNeighbours(p.x, p.y))
+                    if (map[n.y][n.x].elevation == level)
+                        count++;
+                return (count <= max);      //bigger than max = false, smaller = true
+            }
+        }
+        innerMethod im = new innerMethod();
+        HashMap hm = new HashMap(); //used to check for elevation, shortens code
+        hm.put("Hills", 2);
+        hm.put("Mountains", 3);
+        hm.put("Water", 0);
+
+        for (Point p: list){                    //goes through each point
+            validPoint:{                 //if this point fails a check, skip all other filter checks
+                for (Capsule c: filters) {          //checks each filter
+                    if (c.s.equals("Hills") || c.s.equals("Mountains") || c.s.equals("Water")) {
+                        //checks for elevation
+                        if (im.checkNeighbourHeight(map, p, (int)hm.get(c.s), c.n))
+                            break;
+                        else
+                            break validPoint;
+                    }else if(c.s.charAt(0) == 'f') {        //checks for features
+                        int count = 0;
+                        String s = c.s.substring(1);        //have to substring, since all features start with f
+                        for (Point n: getNeighbours(p.x, p.y)){
+                            if (map[n.y][n.x].feature.equals(s))
+                                count++;
+                            if (count > c.n)
+                                break validPoint;
+                            break;
+                        }
+                    }else{  //if it dosnt check for elevation or features, then it checks for landtypes
+                        int count = 0;
+                        for (Point n: getNeighbours(p.x, p.y)){         //checks each neighbour
+                            if (map[n.y][n.x].landType.equals(c.s))     //if their landtype equals to what im looking for
+                                count++;
+                            if (count > c.n)                            //if theres more than allowed, break all filter checks for this point
+                                break validPoint;
+                            break;
+                        }
+                    }
+                }
+                //if it reached this point, then its a valid point
+                l.add(map[p.y][p.x]);
+            }
+        }
+
+        return l;
+    }
+
+    /**
+     * Returns a list of points indicating where the landtypes of _land_ are found
+     * @param map
+     * @param land      = list of land types to check for
+     * @return
+     */
+    private Array<Point> getLandTypes(Hex[][] map, String[] land){
+        Array<Point> l = new Array<>();
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++) {
+                for (String s: land) {
+                    if (map[y][x].landType.equals(s)) {
+                        l.add(new Point(x, y));
+                        break;
+                    }
+                }
+            }
+        }
+        return l;
+    }
 
     private void generateStartPlots(Hex[][] map, Array<Capsule> sp){
         DebugClass.generateLog("Generate Starting Points");
@@ -105,13 +285,6 @@ public class Random {
                     }
 
                 }
-            }
-        }
-
-
-        for (int y = 0; y < map.length; y++){
-            for (int x = 0; x < map[0].length; x++){
-
             }
         }
     }

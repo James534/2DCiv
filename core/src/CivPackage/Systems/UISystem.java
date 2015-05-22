@@ -111,7 +111,9 @@ public class UISystem {
         path.clear();
         turns.clear();
 
+        //debug stuff
         debugSelect = null;
+        debugOutput.setText("");
     }
 
     public void setDebug(boolean b){

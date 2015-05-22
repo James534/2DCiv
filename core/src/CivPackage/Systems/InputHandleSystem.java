@@ -62,6 +62,7 @@ public class InputHandleSystem implements InputProcessor{
             case 68:            //~ key, turns on debug mode
                 GameScreen.setDebug(!GameScreen.getDebug());
                 System.out.println("Debug mode: " + GameScreen.getDebug());
+                break;
         }
         //System.out.println(keycode);
         return false;
