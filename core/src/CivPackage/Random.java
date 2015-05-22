@@ -81,23 +81,36 @@ public class Random {
 
     private void generateWonders(Hex[][] map){
         /*
-        -1  BC   -Barringer Crater: Must be in tundra or desert; cannot be adjacent to grassland; can be adjacent to a maximum of 2 mountains and a maximum of 4 hills and mountains; avoids oceans; becomes mountain
-        -2  Fuji -Mt. Fuji: Must be in grass or plains; cannot be adjacent to tundra, desert, marsh, or mountains; can be adjacent to a maximum of 2 hills; avoids oceans and the biggest landmass; becomes grassland and mountain
-        -3  Mesa -Grand Mesa: Must be in plains, desert, or tundra, and must be adjacent to at least 2 hills; cannot be adjacent to grass; can be adjacent to a maximum of 2 mountains; avoids oceans; becomes mountain
+        -1  BC   -Barringer Crater: Must be in tundra or desert; cannot be adjacent to grassland;
+                    can be adjacent to a maximum of 2 mountains and a maximum of 4 hills and mountains; avoids oceans; becomes mountain
+        -2  Fuji -Mt. Fuji: Must be in grass or plains; cannot be adjacent to tundra, desert, marsh, or mountains;
+                    can be adjacent to a maximum of 2 hills; avoids oceans and the biggest landmass; becomes grassland and mountain
+        -3  Mesa -Grand Mesa: Must be in plains, desert, or tundra, and must be adjacent to at least 2 hills;
+                    cannot be adjacent to grass; can be adjacent to a maximum of 2 mountains; avoids oceans; becomes mountain
         -4  GBR  -Great Barrier Reef: Specifics currently unknown (needs more scrutiny, as the XML file just says "EligibilityMethod" and "TileChangesMethodNumber" as 1; However, by my observations, it takes 2 tiles within shallow waters near the coast)
-        -5  Krak -Krakatoa: Must spawn in the ocean next to at least 1 shallow water tile; cannot be adjacent to ice; changes tiles around it to shallow water; becomes grassland and mountain
+        -5  Krak -Krakatoa: Must spawn in the ocean next to at least 1 shallow water tile;
+                    cannot be adjacent to ice; changes tiles around it to shallow water; becomes grassland and mountain
         -6  RoG  -Rock of Gibraltar: Specifics currently unknown (like the Great Barrier Reef, it has "EligibilityMethod" and "TileChangesMethodNumber" as 2; However, from my observations it appears in shallow waters near the coast)
-        -7  OF   -Old Faithful: Must be adjacent to at least 3 hills and mountains; cannot be adjacent to more than 4 mountains, and cannot be adjacent to more than 3 desert or 3 tundra tiles; avoids oceans; becomes mountain
-        -8  CdP  -Cerro de Potosi: Must be adjacent to at least 1 hill; avoids oceans; becomes mountain
-        -9  ED   -El Dorado: Must be next to at least 1 jungle tile; avoids oceans; becomes flatland plains
+        -7  OF   -Old Faithful: Must be adjacent to at least 3 hills and mountains;
+                    cannot be adjacent to more than 4 mountains, and cannot be adjacent to more than 3 desert or 3 tundra tiles; avoids oceans; becomes mountain
+        -8  CdP  -Cerro de Potosi: Must be adjacent to at least 1 hill;
+                    avoids oceans; becomes mountain
+        -9  ED   -El Dorado: Must be next to at least 1 jungle tile;
+                    avoids oceans; becomes flatland plains
         -10 FoY  -Fountain of Youth: Avoids oceans; becomes flatland plains
-        -11 SP   -Sri Pada: Must be in a grass or plains; cannot be adjacent to desert, tundra, or marshes; can be adjacent to a maximum of 2 mountain tiles; avoids oceans and the biggest landmass; becomes mountain
-        -12 MSin -Mt. Sinai: Must be in plains or desert, and must be adjacent to a minimum of 3 desert tiles; cannot be adjacent to tundra, marshes, or grassland; avoids oceans; becomes mountain
-        -13 Kail -Mt. Kailash: Must be in plains or grassland, and must be adjacent to at least 4 hills and/or mountains; cannot be adjacent to marshes; can be adjacent to a maximum of 1 desert tile; avoids oceans; becomes mountain
-        -14 Ulu  -Uluru: Must be in plains or desert, and must be adjacent to a minimum of 3 plains tiles; cannot be adjacent to grassland, tundra, or marshes; avoids oceans; becomes mountain
+        -11 SP   -Sri Pada: Must be in a grass or plains;
+                    cannot be adjacent to desert, tundra, or marshes; can be adjacent to a maximum of 2 mountain tiles; avoids oceans and the biggest landmass; becomes mountain
+        -12 MSin -Mt. Sinai: Must be in plains or desert, and must be adjacent to a minimum of 3 desert tiles;
+                    cannot be adjacent to tundra, marshes, or grassland; avoids oceans; becomes mountain
+        -13 Kail -Mt. Kailash: Must be in plains or grassland, and must be adjacent to at least 4 hills and/or mountains;
+                    cannot be adjacent to marshes; can be adjacent to a maximum of 1 desert tile; avoids oceans; becomes mountain
+        -14 Ulu  -Uluru: Must be in plains or desert, and must be adjacent to a minimum of 3 plains tiles;
+                    cannot be adjacent to grassland, tundra, or marshes; avoids oceans; becomes mountain
         -15 Vic  -Lake Victoria: Avoids oceans; becomes flatland plains
-        -16 Kili -Mt. Kilimanjaro: Must be in plains or grassland, and must be adjacent to at least 2 hills; cannot be adjacent to more than 2 mountains; avoids oceans; becomes mountain
-        -17 MoS  -Mines of Solomon: Cannot be adjacent to more than 2 mountains; avoids oceans; becomes flatland plains*/
+        -16 Kili -Mt. Kilimanjaro: Must be in plains or grassland, and must be adjacent to at least 2 hills;
+                    cannot be adjacent to more than 2 mountains; avoids oceans; becomes mountain
+        -17 MoS  -Mines of Solomon: Cannot be adjacent to more than 2 mountains;
+                    avoids oceans; becomes flatland plains*/
         //http://gaming.stackexchange.com/questions/95095/do-natural-wonders-spawn-more-closely-to-city-states
 
 
@@ -123,37 +136,62 @@ public class Random {
                 }
             }
         }
+
+        HashMap hm = new HashMap();
+
+        /**
+         * I put the landtypes and filters in an temp "capsule" Object[], and put that in the hash map
+         * Hash map is used so i dont have to repeat code for every different wonder
+         * I just get the land types each wonder looks for, and what to filter out
+         * Then i use the same code for each wonder and generate them
+         */
+        //have to make new arrays for each wonder info because i cant do arrayName = {Stuff1, Stuff2} on already declared arrays
+        //they are going to be all dereferenced eventually, so it wont take that much more memory
+        String[] BCLand = {"Tundra", "Desert"};       //since java dosnt allow array initalization in method calls
+        Capsule[] BCFilter = {new Capsule("Grassland", 0), new Capsule("Water", 0), new Capsule("Mountains", 2), new Capsule("Hills", 2)};
+        Object[] BCCap = {BCLand, BCFilter};
+        hm.put("BC", BCCap);
+
+        String[] FujiLand = {"Grassland", "Plains"};
+        Capsule[] FujiFilter = {new Capsule("Tundra", 0), new Capsule("Desert", 0), new Capsule("fMarsh", 0),
+                new Capsule("Water", 0), new Capsule("Mountains", 0), new Capsule("Hills", 2)};
+        Object[] FujiCap = {FujiLand, FujiFilter};
+        hm.put("Fuji", FujiCap);
+
+        String[] MesaLand = {"Plains", "Desert", "Tundra"};
+        Capsule[] MesaFilter = {new Capsule("Hills", -2), new Capsule("Grassland", 0), new Capsule("Mountain", 2), new Capsule("Water", 0)};
+        Object[] MesaCap = {MesaLand, MesaFilter};
+        hm.put("Mesa", MesaCap);
+
         Array<String> regenerate = new Array<>();
         for (int i = 0; i < toGenerate.length; i++){
-            switch (wonders[toGenerate[i]]){
-                case "BC":{
-                    String[] landToLookFor = {"Tundra", "Desert"};       //since java dosnt allow array initalization in method calls
-                    Capsule[] toFilter = {new Capsule("Grassland", 0), new Capsule("Water", 0), new Capsule("Mountains", 2), new Capsule("Hills", 2)};
-                    Array<Hex> list = filterLand(map, getLandTypes(map, landToLookFor), toFilter);
-                    Array<Hex> validPositions = new Array<>();
-                    for (Hex h : list) {                    //checks distance between possible point
-                        checkList:{
-                            if (!h.getWonder().equals("")) //if there is already a wonder at that point
-                                continue;                  //skip this tile
-                            for (Point p : startingPoints) {    //and every starting point
-                                if (MathCalc.distanceBetween(p.x, p.y, h.getMapX(), h.getMapY()) < 6) { //if they are not enough apart
-                                    break checkList;                                                    //this hex is not a valid position
-                                }
-                            }
-                            validPositions.add(h);
+            String wonderName = wonders[toGenerate[i]];
+            DebugClass.generateLog("Generating: " + wonderName);
+            Object[] tempCapsule = (Object[])hm.get(wonderName);
+            String[] landToLookFor = (String[]) tempCapsule[0];
+            Capsule[] toFilter = (Capsule[])tempCapsule[1];
+            Array<Hex> list = filterLand(map, getLandTypes(map, landToLookFor), toFilter);
+            Array<Hex> validPositions = new Array<>();
+            for (Hex h : list) {                    //checks distance between possible point
+                checkList:{
+                    if (!h.getWonder().equals("")) //if there is already a wonder at that point
+                        continue;                  //skip this tile
+                    for (Point p : startingPoints) {    //and every starting point
+                        /*not sure if wonders can be beside each other, assume so for now*/
+                        if (MathCalc.distanceBetween(p.x, p.y, h.getMapX(), h.getMapY()) < 6) { //if they are not enough apart
+                            break checkList;                                                    //this hex is not a valid position
                         }
                     }
-                    if (validPositions.size > 0) {
-                        Hex h = validPositions.get(random.nextInt(validPositions.size));
-                        map[h.getMapY()][h.getMapX()].makeWonder("BC");    //make a wonder there
-                        DebugClass.generateLog("BC generated at: " + h.getMapX() + " " + h.getMapY());
-                    }else{
-                        regenerate.add("BC");
-                        DebugClass.generateLog("Failed to generate BC");
-                    }
-                    break;
+                    validPositions.add(h);
                 }
-
+            }
+            if (validPositions.size > 0) {
+                Hex h = validPositions.get(random.nextInt(validPositions.size));
+                map[h.getMapY()][h.getMapX()].makeWonder(wonderName);    //make a wonder there
+                DebugClass.generateLog(wonderName + " generated at: " + h.getMapX() + " " + h.getMapY());
+            }else{
+                regenerate.add(wonderName);
+                DebugClass.generateLog("Failed to generate " + wonderName);
             }
 
         }
@@ -175,7 +213,8 @@ public class Random {
 
         class innerMethod{  //hack to use functions in a function, shortens code
             /**
-             * Returns True if this hex' neighbours' elevation are less than max
+             * Returns True if this hex' neighbours' elevation are less than max.
+             * Note, if max < 0, then it check if they are more than max (ie, mininium of 2 hills)
              * @param map
              * @param p            = point to check neighbours around
              * @param level        = elevation
@@ -188,7 +227,10 @@ public class Random {
                 for (Point n : getNeighbours(p.x, p.y))
                     if (map[n.y][n.x].elevation == level)
                         count++;
-                return (count <= max);      //bigger than max = false, smaller = true
+                if (max >= 0)
+                    return (count <= max);      //bigger than max = false, smaller = true
+                else
+                    return (count > Math.abs(max));
             }
         }
         innerMethod im = new innerMethod();
@@ -202,29 +244,25 @@ public class Random {
                 for (Capsule c: filters) {          //checks each filter
                     if (c.s.equals("Hills") || c.s.equals("Mountains") || c.s.equals("Water")) {
                         //checks for elevation
-                        if (im.checkNeighbourHeight(map, p, (int)hm.get(c.s), c.n))
-                            break;
-                        else
+                        if (!im.checkNeighbourHeight(map, p, (int)hm.get(c.s), c.n))
                             break validPoint;
                     }else if(c.s.charAt(0) == 'f') {        //checks for features
                         int count = 0;
                         String s = c.s.substring(1);        //have to substring, since all features start with f
-                        for (Point n: getNeighbours(p.x, p.y)){
+                        for (Point n: getNeighbours(p.x, p.y)) {
                             if (map[n.y][n.x].feature.equals(s))
                                 count++;
-                            if (count > c.n)
-                                break validPoint;
-                            break;
                         }
+                        if (count > c.n)
+                            break validPoint;
                     }else{  //if it dosnt check for elevation or features, then it checks for landtypes
                         int count = 0;
-                        for (Point n: getNeighbours(p.x, p.y)){         //checks each neighbour
+                        for (Point n: getNeighbours(p.x, p.y)) {         //checks each neighbour
                             if (map[n.y][n.x].landType.equals(c.s))     //if their landtype equals to what im looking for
                                 count++;
-                            if (count > c.n)                            //if theres more than allowed, break all filter checks for this point
-                                break validPoint;
-                            break;
                         }
+                        if (count > c.n)                            //if theres more than allowed, break all filter checks for this point
+                            break validPoint;
                     }
                 }
                 //if it reached this point, then its a valid point

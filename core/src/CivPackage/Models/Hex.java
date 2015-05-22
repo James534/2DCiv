@@ -162,6 +162,7 @@ public class Hex extends Actor{
                 elevation = 3;
                 walkable = false;
         }
+        update();
     }
 
     /**
@@ -314,7 +315,11 @@ public class Hex extends Actor{
     }
 
     public void addRiver(String where){
-        Pixmap p = new Pixmap(Gdx.files.internal(hexNames[getImageId()]));
+        Pixmap p;
+        if (wonder.equals(""))
+            p = new Pixmap(Gdx.files.internal(hexNames[getImageId()]));
+        else
+            p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Wonders/" + wonder + ".png"));
         river = where;
         for (int i = 0; i < where.length(); i++){
             if (where.charAt(i) == '1'){

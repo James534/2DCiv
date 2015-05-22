@@ -182,7 +182,9 @@ public class UISystem {
                 String s = "x: " + debugSelect.getMapX() + " y: " + debugSelect.getMapY() + "\n"
                         + "Landtype: " + debugSelect.landType + "\n"
                         + "Elevation: " + debugSelect.elevation + "\n"
-                        + "Feature: " + debugSelect.feature;
+                        + "Feature: " + debugSelect.feature + "\n"
+                        + "Wonder: " + debugSelect.getWonder();
+
                 debugOutput.setText(s);
                 //System.out.println("Has Fresh water " + debugSelect.freshWater);
             }
