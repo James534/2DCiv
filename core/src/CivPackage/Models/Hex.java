@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import java.util.HashMap;
 
 
 /**
@@ -31,9 +32,11 @@ public class Hex extends Actor{
 
     public String landType = "";     //Ocean, Shore, Desert, Plains, Grassland
     public int elevation;       //1 = normal, 2 = hill, 3 = mountain, 0 = water
+    public static final String[] elevationName = {"", "", "Hills", "Mountain"};
     public boolean freshWater;
     public String river = "000000";
     public String feature = "";
+    //Atoll, Ice, Oasis, Jungle, Forest, Marsh
     private String wonder = "";     //private because then it has to call a function, which allows me to update this hex' data
 
     //File names of the hex tiles
@@ -47,20 +50,41 @@ public class Hex extends Actor{
             "Tundra",   "TundraHills",      "TundraMountain",   "TundraFallout",    "TundraForest",     "TundraHillForest",     //36
             "Special1"
     };
-    static{
-        //assembles the file name into the full file name, to avoid repeating code above
+    //Array of textures preloaded from the file names above
+    private static Texture[] textures;
+
+    private static final String[] hexNames2 = {"Ocean", "Shore", "Desert", "Grassland", "Plains", "Snow", "Tundra", "Lake"};
+    private static final String[] features = {"Atoll", "Ice", "Oasis", "Jungle", "Forest", "Marsh"};
+    private static HashMap generatedHexes = new HashMap();  //key is string of the entire hex, value is the hex pixmap
+
+    static {
+        //assembles the file name into the full file name
         for (int i = 0; i < hexNames.length; i++){
             hexNames[i] = GameProject.fileName + "Hex/256/Tiles/" + hexNames[i] + ".png";
         }
-    }
-
-    //Array of textures preloaded from the file names above
-    private static Texture[] textures;
-    static {
         textures = new Texture[hexNames.length];
         for (int i = 0; i < hexNames.length; i++){
             textures[i] = new Texture(hexNames[i]);
         }
+        //System.out.print("H");
+
+        /*
+        //v2
+        Pixmap p, p2;
+        Texture t;
+        for (int i = 0; i < hexNames2.length; i++){
+            for (int n = 0; n < features.length; n++){
+                //System.out.println(hexNames2[i] + features[n]);
+                p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+hexNames2[i]+".png"));
+                generatedHexes.put(hexNames2[i], new Texture(p));
+                p2 = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+features[n]+".png"));
+                generatedHexes.put(features[n], new Texture(p2));
+                p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+hexNames2[i]+".png"));
+                p.drawPixmap(p2, 0, 0);
+                t = new Texture(p);
+                generatedHexes.put(hexNames2[i] + features[n], t);
+            }
+        }*/
     }
 
     private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River1.png"))
@@ -169,14 +193,55 @@ public class Hex extends Actor{
      * Call this method to update the tile after changes
      */
     public void update(){
-        if (wonder.equals("")) {
-            texture = textures[getImageId()];
-            if (elevation == 3) {
-                walkable = false;
+
+        boolean test = true;
+        if (test) {
+            //v2
+            String[] l = {landType, elevationName[elevation], feature};
+            texture = makePixMap(l);
+        }else {
+
+            if (wonder.equals("")) {
+                texture = textures[getImageId()];
+                if (elevation == 3) {
+                    walkable = false;
+                }
+            } else {
+                texture = BC;
             }
-        }else{
-            texture = BC;
         }
+    }
+
+
+    private Texture makePixMap(String[] list){
+        String s = "";
+        for (String str: list){
+            s += str;
+        }
+        if (s.equals("")){
+            return BC;
+        }
+
+        if (!wonder.equals("")){
+            Pixmap p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+landType+".png"));
+            Pixmap wdr = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Wonders/" + wonder + ".png"));
+            p.drawPixmap(wdr, 0, 0);
+            return new Texture(p);
+        }
+
+        if (generatedHexes.containsKey(s)){
+            return (Texture)generatedHexes.get(s);
+        }
+
+        Pixmap p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+landType+".png"));
+        if (elevation > 1)
+            p.drawPixmap(new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+elevationName[elevation]+".png")), 0, 0);
+        if (!feature.equals(""))
+            p.drawPixmap(new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+feature+".png")), 0, 0);
+        Texture t = new Texture(p);
+        generatedHexes.put(s, t);
+
+        return t;
     }
 
     /**
