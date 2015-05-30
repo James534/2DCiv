@@ -60,7 +60,7 @@ public class UISystem {
     }
 
     private void createUi(){
-        table.debug();
+        //table.debug();
         stage.addActor(table);
         TextButton science = new TextButton("Science +" + playerSystem.getResearch(), skin);
         table.add(science).left().top().expand();

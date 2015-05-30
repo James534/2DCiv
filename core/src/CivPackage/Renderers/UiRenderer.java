@@ -38,6 +38,7 @@ public class UiRenderer{
         for (int i = 0; i < num.length; i++){
             num[i] = Assets.drawText(Integer.toString(i), new Texture(Hex.PATH));
         }
+        //Table.drawDebug(stage);
     }
 
     public void render(){

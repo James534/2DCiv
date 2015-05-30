@@ -133,7 +133,7 @@ public class CameraMovementSystem {
             }
         }else
         //slows down the camera if theres no buttons being pressed
-        if (pressX == false) {
+        if (!pressX) {
             if (camVel.x > 0) {
                 camVel.x -= 1 * camZoom/2;
                 if (camVel.x < 0){   //resets the speed if it goes below 0
@@ -149,7 +149,7 @@ public class CameraMovementSystem {
                 camSpeed.x = 0;
             }
         }
-        if (pressY == false) {
+        if (!pressY) {
             if (camVel.y > 0) {
                 camVel.y -= 1 * camZoom/2;
                 if (camVel.y < 0){   //resets the speed if it goes below 0

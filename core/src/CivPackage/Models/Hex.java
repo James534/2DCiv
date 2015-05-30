@@ -30,7 +30,7 @@ public class Hex extends Actor{
 
     private Texture texture;
 
-    public String landType = "";     //Ocean, Shore, Desert, Plains, Grassland
+    public String landType = "";     //Ocean, Shore, Desert, Plains, Grassland, Tundra, Snow
     public int elevation;       //1 = normal, 2 = hill, 3 = mountain, 0 = water
     public static final String[] elevationName = {"", "", "Hills", "Mountain"};
     public boolean freshWater;
@@ -182,9 +182,29 @@ public class Hex extends Actor{
     public void makeWonder(String s){
         wonder = s;
         switch (s){
-            case "BC":
+            case "BC":              //becomes mountain
+            case "Mesa":
+            case "OF":
+            case "CdP":
+            case "SP":
+            case "MSin":
+            case "Kail":
+            case "Ulu":
+            case "Kili":
                 elevation = 3;
-                walkable = false;
+                break;
+            case "Fuji":
+            case "Krak":            //becomes grassland mountain
+                landType = "Grassland";
+                elevation = 3;
+                break;
+            case "ED":              //flatland plains
+            case "FoY":
+            case "Vic":
+            case "Mos":
+                landType = "Plains";
+                elevation = 1;
+                break;
         }
         update();
     }
@@ -193,8 +213,14 @@ public class Hex extends Actor{
      * Call this method to update the tile after changes
      */
     public void update(){
-
         boolean test = true;
+
+        if (elevation == 3) {
+            walkable = false;
+        }else{
+            walkable = true;
+        }
+
         if (test) {
             //v2
             String[] l = {landType, elevationName[elevation], feature};
@@ -203,15 +229,11 @@ public class Hex extends Actor{
 
             if (wonder.equals("")) {
                 texture = textures[getImageId()];
-                if (elevation == 3) {
-                    walkable = false;
-                }
             } else {
                 texture = BC;
             }
         }
     }
-
 
     private Texture makePixMap(String[] list){
         String s = "";
@@ -234,10 +256,10 @@ public class Hex extends Actor{
         }
 
         Pixmap p = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+landType+".png"));
-        if (elevation > 1)
-            p.drawPixmap(new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+elevationName[elevation]+".png")), 0, 0);
         if (!feature.equals(""))
             p.drawPixmap(new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+feature+".png")), 0, 0);
+        if (elevation > 1)
+            p.drawPixmap(new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Tiles/"+elevationName[elevation]+".png")), 0, 0);
         Texture t = new Texture(p);
         generatedHexes.put(s, t);
 

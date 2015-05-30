@@ -76,9 +76,6 @@ public class Random {
         return map;
     }
 
-    public Array<Point> getStartingPoints(){return startingPoints;}
-
-
     private void generateWonders(Hex[][] map){
         /*
         -1  BC   -Barringer Crater: Must be in tundra or desert; cannot be adjacent to grassland;
@@ -87,10 +84,12 @@ public class Random {
                     can be adjacent to a maximum of 2 hills; avoids oceans and the biggest landmass; becomes grassland and mountain
         -3  Mesa -Grand Mesa: Must be in plains, desert, or tundra, and must be adjacent to at least 2 hills;
                     cannot be adjacent to grass; can be adjacent to a maximum of 2 mountains; avoids oceans; becomes mountain
-        -4  GBR  -Great Barrier Reef: Specifics currently unknown (needs more scrutiny, as the XML file just says "EligibilityMethod" and "TileChangesMethodNumber" as 1; However, by my observations, it takes 2 tiles within shallow waters near the coast)
+        -4  GBR  -Great Barrier Reef: Specifics currently unknown (needs more scrutiny, as the XML file just says "EligibilityMethod" and "TileChangesMethodNumber" as 1;
+                    However, by my observations, it takes 2 tiles within shallow waters near the coast)
         -5  Krak -Krakatoa: Must spawn in the ocean next to at least 1 shallow water tile;
                     cannot be adjacent to ice; changes tiles around it to shallow water; becomes grassland and mountain
-        -6  RoG  -Rock of Gibraltar: Specifics currently unknown (like the Great Barrier Reef, it has "EligibilityMethod" and "TileChangesMethodNumber" as 2; However, from my observations it appears in shallow waters near the coast)
+        -6  RoG  -Rock of Gibraltar: Specifics currently unknown (like the Great Barrier Reef, it has "EligibilityMethod" and "TileChangesMethodNumber" as 2;
+                    However, from my observations it appears in shallow waters near the coast)
         -7  OF   -Old Faithful: Must be adjacent to at least 3 hills and mountains;
                     cannot be adjacent to more than 4 mountains, and cannot be adjacent to more than 3 desert or 3 tundra tiles; avoids oceans; becomes mountain
         -8  CdP  -Cerro de Potosi: Must be adjacent to at least 1 hill;
@@ -118,24 +117,6 @@ public class Random {
 
         //64*64 ~ 80*52, which is standard size; 4 wonders
         String[] wonders = {"BC", "Fuji", "Mesa", "GBR", "Krak", "RoG", "OF", "CdP", "ED", "FoY", "SP", "MSin", "Kail", "Ulu", "Vic", "Kili", "MoS"};
-        int[] toGenerate = {-1, -1, -1, -1};
-        int temp = 0;
-        while (true){       //pick 4 numbers that are disntenct and store them in the toGenerate array
-            int n = random.nextInt(wonders.length);
-            boolean regen = false;
-            for (int i = 0; i < toGenerate.length; i++){
-                if (toGenerate[i] == n){
-                    regen = true;
-                }
-            }
-            if (!regen){
-                toGenerate[temp] = n;
-                temp++;
-                if (temp == toGenerate.length){
-                    break;
-                }
-            }
-        }
 
         HashMap hm = new HashMap();
 
@@ -147,34 +128,144 @@ public class Random {
          */
         //have to make new arrays for each wonder info because i cant do arrayName = {Stuff1, Stuff2} on already declared arrays
         //they are going to be all dereferenced eventually, so it wont take that much more memory
+
+        //------------------ DATA ------------------------------------
+        //-4  GBR  -Great Barrier Reef: Specifics currently unknown (needs more scrutiny, as the XML file just says "EligibilityMethod" and "TileChangesMethodNumber" as 1;
+        // However, by my observations, it takes 2 tiles within shallow waters near the coast)
+
+        //-6  RoG  -Rock of Gibraltar: Specifics currently unknown (like the Great Barrier Reef, it has "EligibilityMethod" and "TileChangesMethodNumber" as 2;
+        // However, from my observations it appears in shallow waters near the coast)
+
+
+
+        //-1  BC   -Barringer Crater: Must be in tundra or desert; cannot be adjacent to grassland;
+        //can be adjacent to a maximum of 2 mountains and a maximum of 4 hills and mountains; avoids oceans; becomes mountain
         String[] BCLand = {"Tundra", "Desert"};       //since java dosnt allow array initalization in method calls
         Capsule[] BCFilter = {new Capsule("Grassland", 0), new Capsule("Water", 0), new Capsule("Mountains", 2), new Capsule("Hills", 2)};
         Object[] BCCap = {BCLand, BCFilter};
         hm.put("BC", BCCap);
 
+        //-2  Fuji -Mt. Fuji: Must be in grass or plains; cannot be adjacent to tundra, desert, marsh, or mountains;
+        //can be adjacent to a maximum of 2 hills; avoids oceans and the biggest landmass; becomes grassland and mountain
         String[] FujiLand = {"Grassland", "Plains"};
         Capsule[] FujiFilter = {new Capsule("Tundra", 0), new Capsule("Desert", 0), new Capsule("fMarsh", 0),
                 new Capsule("Water", 0), new Capsule("Mountains", 0), new Capsule("Hills", 2)};
         Object[] FujiCap = {FujiLand, FujiFilter};
         hm.put("Fuji", FujiCap);
 
+        //-3  Mesa -Grand Mesa: Must be in plains, desert, or tundra, and must be adjacent to at least 2 hills;
+        //cannot be adjacent to grass; can be adjacent to a maximum of 2 mountains; avoids oceans; becomes mountain
         String[] MesaLand = {"Plains", "Desert", "Tundra"};
         Capsule[] MesaFilter = {new Capsule("Hills", -2), new Capsule("Grassland", 0), new Capsule("Mountain", 2), new Capsule("Water", 0)};
         Object[] MesaCap = {MesaLand, MesaFilter};
         hm.put("Mesa", MesaCap);
 
-        Array<String> regenerate = new Array<>();
-        for (int i = 0; i < toGenerate.length; i++){
-            String wonderName = wonders[toGenerate[i]];
+        //-5  Krak -Krakatoa: Must spawn in the ocean next to at least 1 shallow water tile;
+        //cannot be adjacent to ice; changes tiles around it to shallow water; becomes grassland and mountain
+        String[] KrakLand = {"Shore"};
+        Capsule[] KrakFilter = {new Capsule("fIce", 0)};
+        Object[] KrakCap = {KrakLand, KrakFilter};
+        hm.put("Krak", KrakCap);
+
+        //-7  OF   -Old Faithful: Must be adjacent to at least 3 hills and mountains;
+        //cannot be adjacent to more than 4 mountains, and cannot be adjacent to more than 3 desert or 3 tundra tiles; avoids oceans; becomes mountain
+        String[] OFLand = {"Grassland", "Plains", "Desert", "Tundra"};
+        //MODIFIED: cannot be around 4+ mountains, has to be near 2 hills and a mountain
+        Capsule[] OFFilter = {new Capsule("Mountain", 4), new Capsule("Hills", -2), new Capsule("Mountain", -1),
+                new Capsule("Desert", 3), new Capsule("Tundra", 3), new Capsule("Water", 0)};
+        Object[] OFCap = {OFLand, OFFilter};
+        hm.put("OF", OFCap);
+
+        //-8  CdP  -Cerro de Potosi: Must be adjacent to at least 1 hill;
+        //avoids oceans; becomes mountain
+        String[] CdPLand = {"Grassland", "Plains", "Desert", "Tundra", "Snow"};
+        Capsule[] CdPFilter = {new Capsule("Hills", -1), new Capsule("Water", 0)};
+        Object[] CdPCap = {CdPLand, CdPFilter};
+        hm.put("CdP", CdPCap);
+
+        //-9  ED   -El Dorado: Must be next to at least 1 jungle tile;
+        //avoids oceans; becomes flatland plains
+        String[] EDLand = {"Grassland", "Plains", "Desert", "Tundra", "Snow"};
+        Capsule[] EDFilter = {new Capsule("fJungle", 1), new Capsule("Water", 0)};
+        Object[] EDCap = {EDLand, EDFilter};
+        hm.put("ED", EDCap);
+
+        //-10 FoY  -Fountain of Youth: Avoids oceans; becomes flatland plains
+        String[] FoYLand = {"Grassland", "Plains", "Desert", "Tundra", "Snow"};
+        Capsule[] FoYFilter = {new Capsule("Water", 0)};
+        Object[] FoYCap = {FoYLand, FoYFilter};
+        hm.put("FoY", FoYCap);
+
+        //-11 SP   -Sri Pada: Must be in a grass or plains;
+        //cannot be adjacent to desert, tundra, or marshes; can be adjacent to a maximum of 2 mountain tiles;
+        //avoids oceans and the biggest landmass; becomes mountain
+        String[] SPLand = {"Grassland", "Plains"};
+        Capsule[] SPFilter = {new Capsule("Desert", 0), new Capsule("Tundra", 0), new Capsule("fMarsh", 0), new Capsule("Mountain", 2)};
+        Object[] SPCap = {SPLand, SPFilter};
+        hm.put("SP", SPCap);
+
+        //-12 MSin -Mt. Sinai: Must be in plains or desert, and must be adjacent to a minimum of 3 desert tiles;
+        //cannot be adjacent to tundra, marshes, or grassland; avoids oceans; becomes mountain
+        String[] MSinLand = {"Plains", "Desert"};
+        Capsule[] MSinFilter = {new Capsule("Desert", -3), new Capsule("Tundra", 0), new Capsule("fMarsh", 0), new Capsule("Grassland", 0), new Capsule("Water",0)};
+        Object[] MSinCap = {MSinLand, MSinFilter};
+        hm.put("MSin", MSinCap);
+
+        //-13 Kail -Mt. Kailash: Must be in plains or grassland, and must be adjacent to at least 4 hills and/or mountains;
+        //cannot be adjacent to marshes; can be adjacent to a maximum of 1 desert tile; avoids oceans; becomes mountain
+        String[] KailLand = {"Plains", "Grassland"};
+        Capsule[] KailFilter = {new Capsule("Hills", -2), new Capsule("Mountain", -2), new Capsule("fMarsh", 0), new Capsule("Desert", 1), new Capsule("Water", 0)};
+        Object[] KailCap = {KailLand, KailFilter};
+        hm.put("Kail", KailCap);
+
+        //-14 Ulu  -Uluru: Must be in plains or desert, and must be adjacent to a minimum of 3 plains tiles;
+        //cannot be adjacent to grassland, tundra, or marshes; avoids oceans; becomes mountain
+        String[] UluLand = {"Plains", "Desert"};
+        Capsule[] UluFilter = {new Capsule("Plains", -3), new Capsule("Grassland", 0), new Capsule("Tundra", 0), new Capsule("fMarsh", 0), new Capsule("Water", 0)};
+        Object[] UluCap = {UluLand, UluFilter};
+        hm.put("Ulu", UluCap);
+
+        //-15 Vic  -Lake Victoria: Avoids oceans; becomes flatland plains
+        String[] VicLand = {"Grassland", "Plains", "Desert", "Tundra", "Snow"};
+        Capsule[] VicFilter = {new Capsule("Water", 0)};
+        Object[] VicCap = {VicLand, VicFilter};
+        hm.put("Vic", VicCap);
+
+        //-16 Kili -Mt. Kilimanjaro: Must be in plains or grassland, and must be adjacent to at least 2 hills;
+        //cannot be adjacent to more than 2 mountains; avoids oceans; becomes mountain
+        String[] KiliLand = {"Plains", "Grassland"};
+        Capsule[] KiliFilter = {new Capsule("Hills", -2), new Capsule("Mountain", 2), new Capsule("Water", 0)};
+        Object[] KiliCap = {KiliLand,KiliFilter};
+        hm.put("Kili", KiliCap);
+
+        //-17 MoS  -Mines of Solomon: Cannot be adjacent to more than 2 mountains;
+        //avoids oceans; becomes flatland plains
+        String[] MoSLand = {"Grassland", "Plains", "Desert", "Tundra", "Snow"};
+        Capsule[] MosFilter = {new Capsule("Mountain", 2), new Capsule("Water", 0)};
+        Object[] MoSCap = {MoSLand, MosFilter};
+        hm.put("MoS", MoSCap);
+
+        //-------------------- END DATA -------------------------------------
+
+        Array<String> wonderList = new Array<>(wonders);
+        Array<Hex> generatedWonders = new Array<>();
+        int counter = 0;
+        int maxSize = 4;
+        while (counter < maxSize){
+            int n = random.nextInt(wonderList.size);
+            String wonderName = wonderList.get(n);
+            wonderList.removeIndex(n);
             DebugClass.generateLog("Generating: " + wonderName);
-            Object[] tempCapsule = (Object[])hm.get(wonderName);
-            if (tempCapsule == null) continue;      //so it dosnt crash when it tries to generate a wonder i havent implemented
+            Object[] tempCapsule = (Object[]) hm.get(wonderName);
+            if (tempCapsule == null)
+                continue;      //so it dosnt crash when it tries to generate a wonder i havent implemented
             String[] landToLookFor = (String[]) tempCapsule[0];
-            Capsule[] toFilter = (Capsule[])tempCapsule[1];
+            Capsule[] toFilter = (Capsule[]) tempCapsule[1];
             Array<Hex> list = filterLand(map, getLandTypes(map, landToLookFor), toFilter);
             Array<Hex> validPositions = new Array<>();
             for (Hex h : list) {                    //checks distance between possible point
-                checkList:{
+                checkList:
+                {
                     if (!h.getWonder().equals("")) //if there is already a wonder at that point
                         continue;                  //skip this tile
                     for (Point p : startingPoints) {    //and every starting point
@@ -183,18 +274,32 @@ public class Random {
                             break checkList;                                                    //this hex is not a valid position
                         }
                     }
+                    for (Hex wonderLoc: generatedWonders){        //checks aginst every other wonder
+                        if (MathCalc.distanceBetween(h.getMapX(), h.getMapY(), wonderLoc.getMapX(), wonderLoc.getMapY()) < 6){
+                            break checkList;
+                        }
+                    }
                     validPositions.add(h);
                 }
             }
+
             if (validPositions.size > 0) {
                 Hex h = validPositions.get(random.nextInt(validPositions.size));
                 map[h.getMapY()][h.getMapX()].makeWonder(wonderName);    //make a wonder there
+                generatedWonders.add(h);
+                counter++;
                 DebugClass.generateLog(wonderName + " generated at: " + h.getMapX() + " " + h.getMapY());
-            }else{
-                regenerate.add(wonderName);
+
+                //post generation processing
+                if (wonderName.equals("Krak")){
+                    for (Point p: getNeighbours(h.getMapX(), h.getMapY())){
+                        map[p.y][p.x].landType = "Shore";
+                    }
+                }
+
+            } else {
                 DebugClass.generateLog("Failed to generate " + wonderName);
             }
-
         }
     }
 
@@ -230,8 +335,9 @@ public class Random {
                         count++;
                 if (max >= 0)
                     return (count <= max);      //bigger than max = false, smaller = true
-                else
-                    return (count > Math.abs(max));
+                else {
+                    return (count >= Math.abs(max));
+                }
             }
         }
         innerMethod im = new innerMethod();
@@ -276,6 +382,7 @@ public class Random {
 
     /**
      * Returns a list of points indicating where the landtypes of _land_ are found
+     * EDIT: Can check for features by putting 'f' in front of the string
      * @param map
      * @param land      = list of land types to check for
      * @return
@@ -285,7 +392,13 @@ public class Random {
         for (int y = 0; y < map.length; y++){
             for (int x = 0; x < map[0].length; x++) {
                 for (String s: land) {
-                    if (map[y][x].landType.equals(s)) {
+                    if (s.charAt(0) == 'f'){        //checks for features too
+                        if (map[y][x].feature.equals(s.substring(1))) {
+                            l.add(new Point(x, y));
+                            break;
+                        }
+                    }
+                    else if (map[y][x].landType.equals(s)) {
                         l.add(new Point(x, y));
                         break;
                     }

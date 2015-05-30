@@ -25,7 +25,6 @@ public class GameMap {
         sp.add(new Capsule("Shore", 12));
         Random r = new Random(1047155);
         map = r.generateHexMap(xSize, ySize, sp);
-        startingPoints = r.getStartingPoints();
         /*TerrainGenerationSystem tgs = new TerrainGenerationSystem(1047155);
         int[][] heightMap = r.generateTerrain(xSize,ySize);
         //int[][] heightMap = r.generateTerrainPerlin(xSize, ySize);
@@ -47,7 +46,6 @@ public class GameMap {
         Array<Capsule> sp = new Array<>();
         sp.add(new Capsule("Shore", 12));
         map = r.generateHexMap(xSize, ySize, sp);
-        startingPoints = r.getStartingPoints();
     }
     public void addUnit(Entity unit){
         getHex((int)unit.getPos().x, (int)unit.getPos().y).addUnit(unit);
