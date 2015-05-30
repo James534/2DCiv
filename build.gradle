@@ -16,7 +16,7 @@ allprojects {
     version = '1.0'
     ext {
         appName = '2DCiv'
-        gdxVersion = '1.2.0'
+        gdxVersion = '1.5.2'
         roboVMVersion = '0.0.13'
     }
 

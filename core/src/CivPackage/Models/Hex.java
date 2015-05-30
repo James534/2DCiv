@@ -103,10 +103,10 @@ public class Hex extends Actor{
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
     public static final int HexS = 128;
-    public static final int HexH = 64;  //S * sin(30) (height)
-    public static final int HexR = 110; //S * cos(30) (radius)
-    public static final int HexD = 220; //2 * HexR    (diameter)
-    public static final int HexHS= 192; //HexH + HexS
+    public static final int HexH = (int)Math.round(HexS * Math.sin(3.14156/6));  //S * sin(30) (height)
+    public static final int HexR = (int)Math.round(HexS * Math.cos(3.14156/6));  //S * cos(30) (radius)
+    public static final int HexD = HexR * 2; //2 * HexR    (diameter)
+    public static final int HexHS= HexH + HexS; //HexH + HexS
 
     /*
     Id directory:
