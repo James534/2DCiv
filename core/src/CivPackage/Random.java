@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * Created by Lu on 2014-07-12.
@@ -39,7 +40,7 @@ public class Random {
          *      -terrain/climate (grassland, plains, desert, tundra, snow)  (yes)
          *      -rivers and then lakes                                      (reversed; lakes first, not implemented in the hexes in this step)
          *      -features (forest, jungle, etc)                             (need to improve)
-         *      -starting plots (starting points > wonders > resources)     (1/3)
+         *      -starting plots (starting points > wonders > resources)     (2/3)
          *      -goodies (???)                                              (no?)
          */
 
@@ -57,6 +58,7 @@ public class Random {
         generateFeatures(map);
         generateStartPlots(map, sp);
         generateWonders(map);
+        generateResources(map);
 
         for (int y = 0; y < ySize; y++){
             for (int x = 0; x < xSize; x++){
@@ -74,6 +76,103 @@ public class Random {
         DebugClass.startingPoints = startingPoints;
 
         return map;
+    }
+
+    private void generateResources(final Hex[][] map){
+        //http://www.reddit.com/r/civ/comments/2a37ws/effects_of_setting_resources_to_abundant_or_sparse/
+        //temp class to hold methods only this function will call
+        class temp{
+
+        }
+
+        temp t = new temp();
+        for (Point p: startingPoints){
+            if (!onIsland(map, p, 40)){
+                //if the area is less than 40, give that civ more resources
+                int area = calculateArea(map, p);
+                DebugClass.generateLog("Starting Point| " + p.x + " " + p.y + " with area| " + area+" given aid");
+            }
+        }
+    }
+
+    /**
+     * Returns True if the land mass containing _p_ is greater than the area specified
+     * @param p
+     * @param area
+     * @return
+     */
+    private boolean onIsland (Hex[][] map, Point p, int area){
+        int landArea = 1;
+        LinkedList<Point> li = new LinkedList<>();
+        LinkedList<Hex> history = new LinkedList<>();
+        li.push(p);
+        history.push(map[p.y][p.x]);
+        //BFS search from the point P, until there is no more land to be found
+        //if the landmass area is less than specified, return false
+        Point t;
+        while (li.size() > 0){
+            t = li.pop();
+            for (Point neighbour: getNeighbours(t.x, t.y)){
+                if (map[neighbour.y][neighbour.x].elevation > 0 &&              //check if the tile is not water
+                        !history.contains(map[neighbour.y][neighbour.x])){      //and if it has been visited yet
+                    li.push(neighbour);
+                    history.push(map[neighbour.y][neighbour.x]);
+                    landArea++;
+                }
+            }
+            if (landArea > area)
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculates the area of the island _p_ is on
+     * Similar to onIsland, except it calculates the entire area instead of exiting early if the condition has been reached
+     * Use this to calculate area of small island to give offset balance
+     * @param p
+     * @return
+     */
+    private int calculateArea(Hex[][] map, Point p){
+        int area = 0;
+        LinkedList<Point> li = new LinkedList<>();
+        LinkedList<Hex> history = new LinkedList<>();
+        li.push(p);
+        history.push(map[p.y][p.x]);
+        Point t;
+        while (li.size() > 0) {
+            t = li.pop();
+            for (Point neighbour: getNeighbours(t.x, t.y)){
+                if (map[neighbour.y][neighbour.x].elevation > 0 &&              //check if the tile is not water
+                        !history.contains(map[neighbour.y][neighbour.x])){      //and if it has been visited yet
+                    li.push(neighbour);
+                    history.push(map[neighbour.y][neighbour.x]);
+                    area++;
+                }
+            }
+        }
+
+        return area;
+    }
+
+    private Array<Hex> getIslandTiles(Hex[][] map, Point p){
+        LinkedList<Point> li = new LinkedList<>();
+        Array<Hex> island = new Array<>();
+        li.push(p);
+        island.add(map[p.y][p.x]);
+        Point t;
+        while (li.size() > 0) {
+            t = li.pop();
+            for (Point neighbour: getNeighbours(t.x, t.y)){
+                if (map[neighbour.y][neighbour.x].elevation > 0 &&              //check if the tile is not water
+                        !island.contains(map[neighbour.y][neighbour.x], true)){      //and if it has been visited yet
+                    li.push(neighbour);
+                    island.add(map[neighbour.y][neighbour.x]);
+                }
+            }
+        }
+        return island;
     }
 
     private void generateWonders(Hex[][] map){
@@ -421,10 +520,16 @@ public class Random {
                             DebugClass.generateLog("Failed to generate all starting points");
                             break;
                         }
-                        int n = random.nextInt(shore.size);
-                        Point t = shore.removeIndex(n);
-                        startingPoints.add(t);
-                        //map[t.x][t.y].landType = "Special";
+                        Point t = null;
+                        while (shore.size > 0) {
+                            int n = random.nextInt(shore.size);
+                            t = shore.removeIndex(n);
+                            if (onIsland(map, t, 20)){     //use this spot if the area is > 20
+                                startingPoints.add(t);
+                                break;
+                            }
+                            //map[t.x][t.y].landType = "Special";
+                        }
 
                         //remove neighbour tiles from the list
                         Array<Point> toRemove = new Array<>();

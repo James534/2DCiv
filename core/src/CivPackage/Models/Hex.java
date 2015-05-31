@@ -102,7 +102,7 @@ public class Hex extends Actor{
     public static final Pixmap PATH = new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/Path.png"));
 
     //http://www.gamedev.net/page/resources/_/technical/game-programming/coordinates-in-hexagon-based-tile-maps-r1800
-    public static final int HexS = 128;
+    public static final int HexS = 127;
     public static final int HexH = (int)Math.round(HexS * Math.sin(3.14156/6));  //S * sin(30) (height)
     public static final int HexR = (int)Math.round(HexS * Math.cos(3.14156/6));  //S * cos(30) (radius)
     public static final int HexD = HexR * 2; //2 * HexR    (diameter)
