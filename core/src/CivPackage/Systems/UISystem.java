@@ -7,6 +7,7 @@ import CivPackage.Util.Point;
 import CivPackage.Screens.GameScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -125,6 +126,16 @@ public class UISystem {
         else {
             debugTable.remove();
         }
+    }
+
+    public Array<Array<Vector2>> resourceIcons(){
+        Array<Array<Vector2>> iconLocation = new Array<>();
+        Hex[][] map = this.map.getMap();
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++){
+            }
+        }
+        return iconLocation;
     }
 
     /**

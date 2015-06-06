@@ -13,6 +13,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.Array;
+import sun.security.ssl.Debug;
 
 /**
  * Created by Lu on 2014-07-16.
@@ -65,10 +67,24 @@ public class UiRenderer{
             if (uis.debugSelect != null) {
                 batch.draw(Hex.SELECTED2, uis.debugSelect.getPixelPos().x, uis.debugSelect.getPixelPos().y);
             }
+
+            if (DebugClass.landPatch.size > 0)
+                for (Array<Hex> a: DebugClass.landPatch)
+                    for (Hex h: a)
+                        batch.draw(Hex.SELECTED2, h.getPixelPos().x, h.getPixelPos().y);
+
             for (Point p: DebugClass.startingPoints){
                 Point pPos = MathCalc.getPixelPos(p);
                 batch.draw(Hex.SELECTED, pPos.x, pPos.y);
             }
+
+
+            int loc = 64;
+
+            //batch.draw(Hex.ICONS[1], loc -Hex.ICONS[1].getWidth()/2, loc -Hex.ICONS[1].getHeight()/2);
+            //batch.draw(Hex.ICONS[0], loc -Hex.ICONS[0].getWidth()/2, loc);
+            //batch.draw(Hex.ICONS[0], loc -Hex.ICONS[0].getWidth()/2, loc -Hex.ICONS[0].getHeight());
+            batch.draw(Hex.ICONS[2], 128 - Hex.ICONS[2].getWidth()/2, 128 - Hex.ICONS[2].getHeight()/2);
         }
 
         batch.end();

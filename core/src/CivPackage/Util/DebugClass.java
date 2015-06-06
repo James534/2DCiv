@@ -1,5 +1,6 @@
 package CivPackage.Util;
 
+import CivPackage.Models.Hex;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -7,6 +8,7 @@ import com.badlogic.gdx.utils.Array;
  */
 public class DebugClass {
     public static Array<Point> startingPoints;
+    public static Array<Array<Hex>> landPatch = new Array<>();
     public static boolean debugGeneration = true;
 
     public static void generateLog(String s){

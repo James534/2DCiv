@@ -1,6 +1,7 @@
 package CivPackage.Models;
 
 import CivPackage.GameProject;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -30,13 +31,13 @@ public class Hex extends Actor{
 
     private Texture texture;
 
-    public String landType = "";     //Ocean, Shore, Desert, Plains, Grassland, Tundra, Snow
-    public int elevation;       //1 = normal, 2 = hill, 3 = mountain, 0 = water
+    public String landType = "";    //Ocean, Shore, Desert, Plains, Grassland, Tundra, Snow
+    public int elevation;           //1 = normal, 2 = hill, 3 = mountain, 0 = water
     public static final String[] elevationName = {"", "", "Hills", "Mountain"};
     public boolean freshWater;
     public String river = "000000";
-    public String feature = "";
-    //Atoll, Ice, Oasis, Jungle, Forest, Marsh
+    public String feature = "";     //Atoll, Ice, Oasis, Jungle, Forest, Marsh
+    private float[] terrainGains;   //the growth from this tile;    0 = food, 1 = production, 2 = gold, 3 = science, 4 = culture
     private String wonder = "";     //private because then it has to call a function, which allows me to update this hex' data
 
     //File names of the hex tiles
@@ -87,6 +88,12 @@ public class Hex extends Actor{
         }*/
     }
 
+    public static final Texture[] ICONS = { //http://civilization.wikia.com/wiki/Category:Civilization_V_icon_templates
+            new Texture(GameProject.fileName + "Hex/256/Icons/Food32.png"),
+            new Texture(GameProject.fileName + "Hex/256/Icons/Two2.png"),
+            new Texture(GameProject.fileName + "Hex/256/Icons/Three.png")
+    };
+
     private static final Pixmap[] rivers = {new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River1.png"))
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River2.png"))
             ,new Pixmap(Gdx.files.internal(GameProject.fileName + "Hex/256/River3.png"))
@@ -109,7 +116,7 @@ public class Hex extends Actor{
     public static final int HexHS= HexH + HexS; //HexH + HexS
 
     /*
-    Id directory:
+    Id directory:       NO LONGER BEING USED
         abcdefghijklmn
 
         |letter and name|------------------|a,          b,          c,              d,          e,      f,      g,      h
@@ -135,6 +142,17 @@ public class Hex extends Actor{
                                             landmark, lumber mill, mine, moai, offshore platform, oil well, pasture, plantation, polder, quarry, terrance farm, trading post
      */
 
+    /*
+            Banana - Jungle
+            Wheat  - flood plains, plains
+            Cattle - plains, hills, grassland
+            Sheep  - plains, hills
+            Bison  - grassland, plains
+            Deer   - forest, tundra
+            Fish   - coast
+            Stone  - desert, plains, tundra, hills, snow
+     */
+
     public Hex(int x, int y){
         pixelPos = new Vector2();
         pos = new Vector2(x,y);
@@ -144,6 +162,9 @@ public class Hex extends Actor{
             even = false;
         }
         cost = 1;
+        terrainGains = new float[5];
+        for (int i = 0; i < terrainGains.length; i++)
+            terrainGains[0] = 0;
 
         pixelPos.x = pos.x * HexD + (pos.y %2)*HexR;
         pixelPos.y = pos.y * HexHS;
@@ -213,8 +234,64 @@ public class Hex extends Actor{
      * Call this method to update the tile after changes
      */
     public void update(){
-        boolean test = true;
+        //============================= update the output values ==================
+        //0 = food, 1 = production, 2 = gold, 3 = science, 4 = culture
+        for (int i = 0; i < terrainGains.length; i++)
+            terrainGains[i] = 0;        //reset all values
 
+        if (elevation == 0) {
+            terrainGains[0] = 1;                    //all water values are just +1 food
+            if (landType.equals("Lake"))
+                terrainGains[0] = 2;                //except lakes
+            if (feature.equals("Ice")){             //ice has no gains
+                terrainGains[0] = 0;
+                terrainGains[1] = 0;
+            }
+
+        }else if (elevation == 1){
+            if (feature == "") {                    //if there is no terrain feature,
+                switch (landType) {                 //update landtype values
+                    case "Tundra":
+                        terrainGains[0] = 1;
+                        break;
+                    case "Grassland":
+                        terrainGains[0] = 2;
+                        break;
+                    case "Plains":
+                        terrainGains[0] = 1;
+                        terrainGains[1] = 1;
+                        break;
+                    //desert and snow have no output values, so dont need to include
+                }
+            }else{                                  //if there is terrain feature, update according to the feature
+                switch (feature){
+                    case "Forest":
+                    case "Atoll":
+                        terrainGains[0] = 1;
+                        terrainGains[1] = 1;
+                        break;
+                    case "Jungle":
+                        terrainGains[0] = 1;
+                        terrainGains[1] = -1;
+                        break;
+                    case "Marsh":
+                        terrainGains[0] = -1;
+                        break;
+                    case "FloodPlains":
+                        terrainGains[0] = 2;
+                        break;
+                    case "Oasis":
+                        terrainGains[0] = 3;
+                        terrainGains[2] = 1;
+                        break;
+                }
+            }
+        }else if (elevation == 2){
+            terrainGains[1] = 2;        //hills are always +2 production
+        }                               //mountains are +0, so not included
+
+        //============================= update the image ==========================
+        boolean test = true;
         if (elevation == 3) {
             walkable = false;
         }else{
@@ -416,6 +493,7 @@ public class Hex extends Actor{
         texture = new Texture(p);
     }
 
+    public float[] getTerrainGains(){return terrainGains;}
     public String getWonder(){return wonder;}
     public Texture getTexture(){
         return texture;

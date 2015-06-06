@@ -2,6 +2,7 @@ package CivPackage.Map;
 
 import CivPackage.Models.Entity;
 import CivPackage.Models.Hex;
+import CivPackage.Util.DebugClass;
 import CivPackage.Util.Point;
 import CivPackage.Random;
 import CivPackage.Util.Capsule;
@@ -42,6 +43,7 @@ public class GameMap {
     public void reset(){
         Random r = new Random((int)(Math.random()*1047155));
         map = null;
+        DebugClass.landPatch = new Array<>();
 
         Array<Capsule> sp = new Array<>();
         sp.add(new Capsule("Shore", 12));
@@ -119,4 +121,6 @@ public class GameMap {
             return map[y][x];
         }
     }
+
+    public Hex[][] getMap(){return map;}
 }

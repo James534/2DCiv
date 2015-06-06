@@ -80,17 +80,56 @@ public class Random {
 
     private void generateResources(final Hex[][] map){
         //http://www.reddit.com/r/civ/comments/2a37ws/effects_of_setting_resources_to_abundant_or_sparse/
+        //http://www.carlsguides.com/strategy/civilization5/difficulty-settings.php
         //temp class to hold methods only this function will call
         class temp{
 
         }
 
+        /**
+         * Item = map size (area) / offset
+         * Bonus /= 30          ~= 30
+         * Lux   /= 88          ~= 90
+         * Lyx type /= 428      ~= 430
+         * iron  /= 50          ~= 50
+         * horse /= 62          ~= 60
+         * coal  /= 75          ~= 70
+         * oil   /= 35          ~= 30
+         * alum  /= 56          ~= 60
+         * uran  /= 143         ~= 140
+         */
+
+        int mapArea = map.length * map[0].length;
+        int bonusResource = Math.round(mapArea/30);
+        int luxResource = Math.round(mapArea/90);
+
         temp t = new temp();
         for (Point p: startingPoints){
-            if (!onIsland(map, p, 40)){
-                //if the area is less than 40, give that civ more resources
+            if (!onIsland(map, p, 40)){                //if the area is less than 40, give that civ help (more resources, less mountains)
                 int area = calculateArea(map, p);
+                Array<Hex> island = getIslandTiles(map, p, -1);
+                Array<Hex> l = new Array<>();
+                int mountains = 0;
+
+                DebugClass.landPatch.add(island);
                 DebugClass.generateLog("Starting Point| " + p.x + " " + p.y + " with area| " + area+" given aid");
+
+                //reduce the amount of mountains if there are alot
+                for (Hex h:island){
+                    if (h.elevation == 3){
+                        l.add(h);
+                        mountains++;
+                    }
+                }
+                while (mountains > area/10){
+                    l.get(random.nextInt(l.size)).elevation = 1;
+                    DebugClass.generateLog("Removed a mountain in " + p.x + " " + p.y);
+                    mountains--;
+                }
+
+                //give it more bonus resources
+
+
             }
         }
     }
@@ -156,9 +195,10 @@ public class Random {
         return area;
     }
 
-    private Array<Hex> getIslandTiles(Hex[][] map, Point p){
+    private Array<Hex> getIslandTiles(Hex[][] map, Point p, int max){
         LinkedList<Point> li = new LinkedList<>();
         Array<Hex> island = new Array<>();
+        int size = 1;
         li.push(p);
         island.add(map[p.y][p.x]);
         Point t;
@@ -169,8 +209,11 @@ public class Random {
                         !island.contains(map[neighbour.y][neighbour.x], true)){      //and if it has been visited yet
                     li.push(neighbour);
                     island.add(map[neighbour.y][neighbour.x]);
+                    size++;
                 }
             }
+            if (max > 0 && size > max)
+                break;
         }
         return island;
     }
@@ -516,10 +559,6 @@ public class Random {
                     Array<Point> shore = getShore(map);
                     //System.out.println (shore.size);
                     for (int i = 0; i < c.n; i++){
-                        if (shore.size == 0){
-                            DebugClass.generateLog("Failed to generate all starting points");
-                            break;
-                        }
                         Point t = null;
                         while (shore.size > 0) {
                             int n = random.nextInt(shore.size);
@@ -530,11 +569,15 @@ public class Random {
                             }
                             //map[t.x][t.y].landType = "Special";
                         }
+                        if (shore.size == 0){
+                            DebugClass.generateLog("Failed to generate all starting points");
+                            break;
+                        }
 
                         //remove neighbour tiles from the list
                         Array<Point> toRemove = new Array<>();
                         for (Point p: shore){
-                            if (MathCalc.distanceBetween(p.x, p.y, t.x, t.y) < 5){
+                            if (MathCalc.distanceBetween(p.x, p.y, t.x, t.y) < 10){
                                 toRemove.add(p);
                             }
                         }
