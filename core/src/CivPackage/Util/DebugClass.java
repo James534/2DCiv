@@ -15,4 +15,12 @@ public class DebugClass {
         if (debugGeneration)
             System.out.println(s);
     }
+    public static void generateLog(int s){
+        if (debugGeneration)
+            System.out.println(s);
+    }
+    public static void generateLog(float s){
+        if (debugGeneration)
+            System.out.println(s);
+    }
 }

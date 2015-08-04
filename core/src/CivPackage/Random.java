@@ -5,8 +5,11 @@ import CivPackage.Util.Capsule;
 import CivPackage.Util.DebugClass;
 import CivPackage.Util.MathCalc;
 import CivPackage.Util.Point;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.org.glassfish.external.statistics.Stats;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -58,6 +61,13 @@ public class Random {
         generateFeatures(map);
         generateStartPlots(map, sp);
         generateWonders(map);
+
+        //update all the hexes so their output is updated
+        for (int y = 0; y < map.length; y++){
+            for (int x = 0; x < map[0].length; x++){
+                map[y][x].update();
+            }
+        }
         generateResources(map);
 
         for (int y = 0; y < ySize; y++){
@@ -103,7 +113,18 @@ public class Random {
         int bonusResource = Math.round(mapArea/30);
         int luxResource = Math.round(mapArea/90);
 
+        //0 = food, 1 = production, 2 = gold, 3 = science, 4 = culture
+        float[] avgResources = {0,0,0,0,0};                             //total average resources
+        float[][] startingAvg = new float[startingPoints.size][5];      //average of 4or5 radius around each starting hex
+        //not sure if they start initalized at 0, but initalize each to 0 anyways
+        for (int i = 0; i < startingAvg.length; i++){
+            for (int j = 0; j < startingAvg[0].length; j++){
+                startingAvg[i][j] = 0;
+            }
+        }
+
         temp t = new temp();
+        int counter = 0;
         for (Point p: startingPoints){
             if (!onIsland(map, p, 40)){                //if the area is less than 40, give that civ help (more resources, less mountains)
                 int area = calculateArea(map, p);
@@ -128,9 +149,60 @@ public class Random {
                 }
 
                 //give it more bonus resources
-
-
             }
+
+            //calculate average resources of 4 tile radius
+            int counter2 = 0;
+            for (Point point: getPointInRange(p.x, p.y, 4)) {
+                float[] temp = map[point.y][point.x].getTerrainGains();
+                for (int i = 0; i < temp.length; i++) {
+                    startingAvg[counter][i] += temp[i];
+                }
+                counter2++;
+            }
+            //add the average of it to the total average resources
+            for (int i = 0; i < avgResources.length; i++){
+                avgResources[i] += startingAvg[counter][i]/counter2;
+            }
+            counter++;
+        }
+
+        //find average of resources
+        for (int i = 0; i < avgResources.length; i++){
+            avgResources[i] /= startingPoints.size;
+        }
+        //find stdDev of food, production, gold
+        float[] stdDev = {0,0,0,0};
+        for (int i = 0; i < stdDev.length; i++) {
+            for (int n = 0; n < startingAvg.length; n++){
+                stdDev[i] += (startingAvg[n][i] - avgResources[i]) * (startingAvg[n][i] - avgResources[i]);
+            }
+            stdDev[i] /= startingAvg.length;
+            stdDev[i] = (float)Math.sqrt(stdDev[i]);
+            //DebugClass.generateLog(stdDev[i]);
+        }
+
+        //2nd pass through starting points to balance out the resources, ensure each civ is balacned from the start
+        counter = 0;
+        for (Point p: startingPoints){
+            for (int i = 0; i < 4; i++){        //calculate food, production and gold only
+                float z = (startingAvg[counter][i] - avgResources[i])/stdDev[i];        //z scores
+                DebugClass.generateLog(z);
+
+                while (z < -0.3){      //keep trying to add resources until the resources approach average
+
+                }
+
+                if (startingAvg[counter][i] < avgResources[i]){             //if the resource at this point is less than the average
+                    //give it additional resources to make it a little below average
+                    //give it better lux resources
+
+                }else{                                                      //if this starting point has more than thte average resource
+                    //give it slightly worse lux resources
+                }
+            }
+
+            counter++;
         }
     }
 
@@ -1460,7 +1532,7 @@ public class Random {
         /*System.out.println (stdDev);
         System.out.println("min " + min + " max " + max);
         System.out.println (mean);*/                        //mean
-        fl.sort();
+        //fl.sort();
         //System.out.println (fl.get((fl.size-1)/2));         //median
         return map;
     }
